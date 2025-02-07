@@ -1,30 +1,31 @@
 # AMET (Alumni Management and Engagement Toolkit)
 
-## Overview
-A comprehensive Alumni Management System built with a modern tech stack, providing robust features for alumni networking, event management, and job postings.
+## 🌟 Overview
+A comprehensive Alumni Management System built with Vue.js and Flask, providing robust features for alumni networking, event management, and job postings.
 
-## Technology Stack
-### Frontend
+## 🚀 Technology Stack
+
+### 💻 Frontend
 - Vue.js 3
 - Vite
 - TypeScript
 - Pinia (State Management)
 - Vue Router
 
-### Backend
+### 🔧 Backend
 - Flask
 - PostgreSQL
 - SQLAlchemy
 - Python 3.8+
 
-## Features
+## ✨ Features
 - 🔐 User Authentication
 - 👥 Alumni Profile Management
 - 🎉 Event Registration and Management
 - 💼 Job Posting and Application
 - 🔍 Advanced Alumni Search and Networking
 
-## Project Structure
+## 📂 Project Structure
 ```
 AMET/
 │
@@ -42,9 +43,9 @@ AMET/
 └── README.md
 ```
 
-## Setup and Installation
+## 🛠 Setup and Installation
 
-### Frontend Setup
+### 🖥 Frontend Setup
 #### Prerequisites
 - Node.js 18+
 - npm
@@ -65,7 +66,7 @@ npm run dev
 npm run build
 ```
 
-### Backend Setup
+### 🗄 Backend Setup
 #### Prerequisites
 - Python 3.8+
 - PostgreSQL
@@ -90,33 +91,34 @@ flask db upgrade
 flask run
 ```
 
-## API Endpoints
-### Authentication
+## 🌐 API Endpoints
+
+### 🔑 Authentication
 - `POST /auth/register`: User registration
 - `POST /auth/login`: User login
 
-### Alumni
+### 👤 Alumni
 - `GET /alumni/profile`: Retrieve alumni profile
 - `PUT /alumni/profile`: Update alumni profile
 - `GET /alumni/search`: Search alumni by various criteria
 
-### Events
+### 🎟 Events
 - `GET /events`: List events
 - `POST /events/register`: Register for an event
 
-### Jobs
+### 💼 Jobs
 - `GET /jobs`: List job postings
 - `POST /jobs/apply`: Apply for a job
 
-## Deployment
-- Frontend: Deployed on GitHub Pages
+## 🚢 Deployment
+- Frontend: Deployed on GitHub Pages at https://rashwincrush.github.io/AMET/
 - Backend: To be deployed (Suggestions: Heroku, AWS, or DigitalOcean)
 
-### Continuous Integration
+### 🔄 Continuous Integration
 - GitHub Actions for automated testing and deployment
 - Automatic frontend deployment to GitHub Pages
 
-## Contributing
+## 🤝 Contributing
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
@@ -125,9 +127,8 @@ flask run
 
 Please read `CONTRIBUTING.md` for details on our code of conduct and the process for submitting pull requests.
 
-## License
+## 📄 License
 This project is licensed under the MIT License - see the `LICENSE` file for details.
 
-## Contact
-- Project Maintainer: [Your Name]
+## 📧 Contact
 - Project Link: [https://github.com/rashwincrush/AMET](https://github.com/rashwincrush/AMET)
