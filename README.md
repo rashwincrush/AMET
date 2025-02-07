@@ -1,99 +1,133 @@
-# AMET
-## Alumni Management SaaS
+# AMET (Alumni Management and Engagement Toolkit)
 
-A comprehensive Alumni Management System built with Vue.js and Flask, providing features for alumni networking, event management, and job postings.
+## Overview
+A comprehensive Alumni Management System built with a modern tech stack, providing robust features for alumni networking, event management, and job postings.
 
-### Frontend Technologies
+## Technology Stack
+### Frontend
 - Vue.js 3
 - Vite
-- Pinia (State Management)
 - TypeScript
+- Pinia (State Management)
 - Vue Router
 
-### Backend Technologies
+### Backend
 - Flask
 - PostgreSQL
 - SQLAlchemy
+- Python 3.8+
 
-### Features
-- User Authentication
-- Alumni Profile Management
-- Event Registration
-- Job Posting and Application
-- Alumni Search and Networking
+## Features
+- 🔐 User Authentication
+- 👥 Alumni Profile Management
+- 🎉 Event Registration and Management
+- 💼 Job Posting and Application
+- 🔍 Advanced Alumni Search and Networking
 
-### Frontend Setup and Installation
+## Project Structure
+```
+AMET/
+│
+├── frontend/         # Vue.js frontend application
+│   ├── src/
+│   ├── vite.config.ts
+│   └── package.json
+│
+├── backend/          # Flask backend application
+│   ├── app.py
+│   ├── models/
+│   ├── routes/
+│   └── requirements.txt
+│
+└── README.md
+```
+
+## Setup and Installation
+
+### Frontend Setup
 #### Prerequisites
 - Node.js 18+
 - npm
 
 #### Installation Steps
-1. Clone the repository
-   ```bash
-   git clone https://github.com/rashwincrush/AMET.git
-   cd AMET/frontend
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/rashwincrush/AMET.git
+cd AMET/frontend
 
-2. Install dependencies
-   ```bash
-   npm install
-   ```
+# Install dependencies
+npm install
 
-3. Run development server
-   ```bash
-   npm run dev
-   ```
+# Run development server
+npm run dev
 
-4. Build for production
-   ```bash
-   npm run build
-   ```
+# Build for production
+npm run build
+```
 
-### Backend Setup and Installation
+### Backend Setup
 #### Prerequisites
 - Python 3.8+
 - PostgreSQL
 
 #### Installation Steps
-1. Create a virtual environment
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
+```bash
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
 
-2. Install dependencies
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Install dependencies
+pip install -r requirements.txt
 
-3. Set up environment variables
-   - Copy `config.env` to `.env`
-   - Update database and email configurations
+# Set up environment variables
+cp config.env .env
+# Edit .env and update configurations
 
-4. Initialize the database
-   ```bash
-   flask db upgrade
-   ```
+# Initialize database
+flask db upgrade
 
-5. Run the application
-   ```bash
-   flask run
-   ```
+# Run the application
+flask run
+```
 
-### API Endpoints
-- `/auth/register`: User registration
-- `/auth/login`: User login
-- `/alumni/profile`: Alumni profile management
-- `/alumni/search`: Search alumni
-- `/events`: List and register for events
-- `/jobs`: List and apply for jobs
+## API Endpoints
+### Authentication
+- `POST /auth/register`: User registration
+- `POST /auth/login`: User login
 
-### Deployment
-The frontend is deployed using GitHub Pages and can be accessed at:
-https://rashwincrush.github.io/AMET/
+### Alumni
+- `GET /alumni/profile`: Retrieve alumni profile
+- `PUT /alumni/profile`: Update alumni profile
+- `GET /alumni/search`: Search alumni by various criteria
 
-### Contributing
-Please read CONTRIBUTING.md for details on our code of conduct and the process for submitting pull requests.
+### Events
+- `GET /events`: List events
+- `POST /events/register`: Register for an event
 
-### License
-This project is licensed under the MIT License.
+### Jobs
+- `GET /jobs`: List job postings
+- `POST /jobs/apply`: Apply for a job
+
+## Deployment
+- Frontend: Deployed on GitHub Pages
+- Backend: To be deployed (Suggestions: Heroku, AWS, or DigitalOcean)
+
+### Continuous Integration
+- GitHub Actions for automated testing and deployment
+- Automatic frontend deployment to GitHub Pages
+
+## Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+Please read `CONTRIBUTING.md` for details on our code of conduct and the process for submitting pull requests.
+
+## License
+This project is licensed under the MIT License - see the `LICENSE` file for details.
+
+## Contact
+- Project Maintainer: [Your Name]
+- Project Link: [https://github.com/rashwincrush/AMET](https://github.com/rashwincrush/AMET)
