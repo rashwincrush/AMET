@@ -20,6 +20,13 @@ import { supabase } from '@/lib/supabase';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { toast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
+import Breadcrumbs from '@/components/Breadcrumbs';
+import NoData from '@/components/NoData';
+import NotFound from '@/components/NotFound';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Mentor {
   id: string;

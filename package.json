@@ -5,16 +5,17 @@
   "scripts": {
     "dev": "PORT=3000 next dev",
     "dev:3001": "PORT=3001 next dev",
-    "build": "DISABLE_ESLINT_PLUGIN=true next build",
+    "build": "next build",
     "force-build": "DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 next build",
     "skip-build": "npx tailwindcss-cli build -o public/build/tailwind.css && rm -rf .next && mkdir -p .next/static && cp -r public/build .next/static/ && echo 'Build skipped' && node scripts/create-empty-build.js",
-    "clean": "rm -rf .next && echo 'Build directory cleaned'",
+    "clean": "rm -rf .next node_modules && npm cache clean --force",
     "prod:build": "npm run clean && NODE_ENV=production NEXT_DISABLE_ESLINT=1 DISABLE_ESLINT_PLUGIN=true next build",
     "prod:start": "NODE_ENV=production next start",
     "start": "next start",
     "dev:start": "next dev -p 3000",
     "lint": "next lint",
-    "preinstall": "npm install framer-motion --no-save"
+    "preinstall": "npm install framer-motion --no-save",
+    "vercel-build": "npm install tailwindcss postcss autoprefixer && node install-deps.js && next build"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.6",
@@ -37,6 +38,7 @@
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
     "@types/uuid": "^10.0.0",
+    "autoprefixer": "^10.4.17",
     "chart.js": "^4.4.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -48,6 +50,7 @@
     "next": "^14.2.25",
     "otplib": "^12.0.1",
     "papaparse": "^5.5.2",
+    "postcss": "^8.4.33",
     "qrcode": "^1.5.4",
     "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
@@ -63,6 +66,7 @@
     "react-query": "^3.39.3",
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.2.0",
+    "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
     "xlsx": "^0.18.5",
@@ -76,13 +80,10 @@
     "@types/react-dom": "^18.2.18",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
-    "autoprefixer": "^10.4.17",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.1.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-security": "^2.1.0",
-    "postcss": "^8.4.33",
-    "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3"
   }
 }

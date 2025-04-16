@@ -1,46 +1,23 @@
 #!/bin/bash
 
-# Fix missing getStatusBadge function
-echo "Fixing missing getStatusBadge function..."
-cat > src/app/admin/verifications/getStatusBadge.tsx << 'EOL'
-'use client';
+# Fix for production builds on CI/CD platforms like Vercel
+echo "Fixing production build configuration..."
 
-export function getStatusBadge(status: string | null) {
-  if (!status) return <span className="px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-800">Unknown</span>;
-  
-  switch (status.toLowerCase()) {
-    case 'pending':
-      return <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">Pending</span>;
-    case 'approved':
-      return <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Approved</span>;
-    case 'rejected':
-      return <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">Rejected</span>;
-    case 'verified':
-      return <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Verified</span>;
-    default:
-      return <span className="px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-800">{status}</span>;
-  }
-}
-EOL
+# Update package.json to include critical dependencies in dependencies section
+if ! grep -q "tailwindcss" package.json || ! grep -q "autoprefixer" package.json || ! grep -q "postcss" package.json; then
+  echo "Adding missing dependencies to package.json..."
+  npm install --save tailwindcss autoprefixer postcss class-variance-authority
+fi
 
-# Update verifications page to import getStatusBadge
-echo "Updating verifications page..."
-sed -i '' "1s/^/import { getStatusBadge } from '.\/getStatusBadge';\n/" src/app/admin/verifications/page.tsx
+# Install critical dependencies just in case
+npm install --no-save tailwindcss postcss autoprefixer class-variance-authority framer-motion
 
-# Fix supabaseAdmin issue by creating a mock for populateDb.ts
-echo "Fixing supabaseAdmin issue..."
-cat > src/lib/populateDb.ts.new << 'EOL'
-import { supabase } from './supabase';
+# Create required directories
+mkdir -p src/components/ui
+mkdir -p src/lib
+mkdir -p src/hooks
 
-// Use regular supabase client instead of admin for build
-const supabaseClient = supabase;
+# Run install deps script
+node install-deps.js
 
-export async function populateDatabase() {
-  console.log('This is a mock function for production build');
-  return { success: true };
-}
-EOL
-
-mv src/lib/populateDb.ts.new src/lib/populateDb.ts
-
-echo "All fixes applied. Ready to build for production!"
+echo "Production build fixes complete. Run 'npm run build' to build the project."

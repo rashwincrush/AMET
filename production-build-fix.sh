@@ -512,3 +512,12 @@ find ./src -type f -name "*.tsx" -o -name "*.ts" | xargs sed -i '' 's|@/componen
 sed -i '' 's|PageHeader|page-header|g' src/app/auth/security/page.tsx
 
 echo "Fixes completed, trying to build application..."
+
+# Install critical dependencies
+npm install --no-save framer-motion class-variance-authority tailwindcss postcss autoprefixer
+
+# Clean build directory
+rm -rf .next
+
+# Run build with full dependency checks
+NODE_ENV=production DISABLE_ESLINT_PLUGIN=true npm run build
