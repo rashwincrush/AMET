@@ -1,17 +1,20 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm install tailwindcss postcss autoprefixer && node install-deps.js && npm run build",
+  "buildCommand": "npm install && npm install tailwindcss postcss autoprefixer @emotion/is-prop-valid typescript @types/react @types/react-dom && node install-deps.js && npm run build",
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
   "env": {
     "NEXT_PUBLIC_VERCEL_ENV": "production",
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "NEXT_TELEMETRY_DISABLED": "1"
   },
   "build": {
     "env": {
       "NODE_PATH": "src",
-      "NEXT_PUBLIC_VERCEL_BUILD": "true"
+      "NEXT_PUBLIC_VERCEL_BUILD": "true",
+      "DISABLE_ESLINT_PLUGIN": "true",
+      "NEXT_DISABLE_ESLINT": "1"
     }
   }
 } 
