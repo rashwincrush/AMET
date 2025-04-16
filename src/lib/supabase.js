@@ -1,72 +1,68 @@
 'use client';
 
 import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-// Create a mock Supabase client for environments where there is an issue with imports
+// Initialize the Supabase client with the environment variables
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const useMockData = process.env.USE_MOCK_DATA === 'true';
+
+// Create either a mock client or a real client based on environment variables
 const createMockClient = () => {
-  console.log('Creating mock Supabase client as fallback');
+  console.warn('Using mock Supabase client');
   return {
-    from: (table) => ({
-      select: (columns = '*') => ({
-        eq: (column, value) => ({
-          order: (column, { ascending } = {}) => Promise.resolve({ data: [], error: null }),
-          limit: (count) => Promise.resolve({ data: [], error: null }),
-          single: () => Promise.resolve({ data: null, error: null }),
-        }),
-        limit: (count) => Promise.resolve({ data: [], error: null }),
-      }),
-      insert: (data) => Promise.resolve({ data: null, error: null }),
-      update: (data) => Promise.resolve({ data: null, error: null }),
-      delete: () => Promise.resolve({ data: null, error: null }),
-    }),
     auth: {
-      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-      onAuthStateChange: (callback) => {
-        callback('SIGNED_OUT', null);
-        return { data: { subscription: { unsubscribe: () => {} } } };
-      },
-      signOut: () => Promise.resolve({ error: null }),
+      getSession: async () => ({ data: { session: null }, error: null }),
+      getUser: async () => ({ data: { user: null }, error: null }),
+      onAuthStateChange: () => ({ data: null, error: null, unsubscribe: () => {} }),
+      signOut: async () => ({ error: null }),
     },
+    from: () => ({
+      select: () => ({ data: [], error: null }),
+      insert: () => ({ data: null, error: null }),
+      update: () => ({ data: null, error: null }),
+      delete: () => ({ data: null, error: null }),
+    }),
     storage: {
-      from: (bucket) => ({
-        upload: (path, file) => Promise.resolve({ data: { path }, error: null }),
-        getPublicUrl: (path) => ({ data: { publicUrl: `https://example.com/${path}` } }),
+      from: () => ({
+        upload: async () => ({ data: null, error: null }),
+        getPublicUrl: () => ({ data: { publicUrl: '' }, error: null }),
       }),
     },
   };
 };
 
-// IMPORTANT: Detect if we're in a build or server environment
-const isBuildOrServer = () => {
-  return typeof window === 'undefined' || 
-         process.env.NODE_ENV === 'production' || 
-         process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' ||
-         process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
+// For server components
+const getSupabaseClient = () => {
+  // Return mock client if environment variables are not available
+  if (!supabaseUrl || !supabaseAnonKey || useMockData) {
+    return createMockClient();
+  }
+  
+  // Otherwise, return a real client
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: false }
+  });
 };
 
-// Create a real or mock Supabase client depending on environment
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-// Initialize with mock client by default for safety
-let supabaseClient = createMockClient();
-
-// Only attempt to create a real client if we're in the browser
-if (!isBuildOrServer()) {
-  try {
-    console.log('Creating real Supabase client with URL:', supabaseUrl);
-    if (supabaseUrl && supabaseKey) {
-      supabaseClient = createClient(supabaseUrl, supabaseKey);
-    }
-  } catch (error) {
-    console.error('Error creating Supabase client:', error);
+// For client components (to be used in components that need auth)
+const getClientSupabase = () => {
+  if (typeof window === 'undefined') {
+    console.warn('Attempted to create client component Supabase client in a server context');
+    return createMockClient();
   }
-}
+  
+  try {
+    return createClientComponentClient();
+  } catch (error) {
+    console.error('Error creating client component Supabase client:', error);
+    return createMockClient();
+  }
+};
 
-// Create a supabase object to export
-const supabase = supabaseClient;
+// Create instances
+export const supabase = getSupabaseClient();
+export const supabaseClient = getClientSupabase();
 
-// Export both as named export and default export
-export { supabase };
 export default supabase;

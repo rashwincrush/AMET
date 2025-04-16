@@ -5,7 +5,7 @@ const nextConfig = {
   output: 'standalone', // Enable standalone output for Docker
   poweredByHeader: false, // Remove X-Powered-By header
   images: {
-    domains: ['localhost', 'example.com', 'avatars.githubusercontent.com'],
+    domains: ['localhost', 'example.com', 'avatars.githubusercontent.com', 'randomuser.me', 'images.unsplash.com'],
     // Add any additional image domains you need
   },
   eslint: {
@@ -24,8 +24,14 @@ const nextConfig = {
   // Configure exporting options for static optimization
   trailingSlash: false,
   
-  // Output as static site to avoid SSR issues
-  output: process.env.SKIP_API_ROUTES ? 'export' : 'standalone',
+  // Always use standalone output for Vercel to support API routes
+  output: 'standalone',
+  
+  experimental: {
+    // Disable static generation for API routes
+    appDir: true,
+    serverActions: true,
+  },
 };
 
 module.exports = nextConfig;
