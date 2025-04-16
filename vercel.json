@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "buildCommand": "npm install framer-motion --save && npm run build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
+} 
