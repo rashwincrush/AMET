@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm install framer-motion --save && npm run build",
+  "buildCommand": "node install-deps.js && npm run build",
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
