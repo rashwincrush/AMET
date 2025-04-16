@@ -12,7 +12,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { FaBriefcase, FaBuilding, FaMapMarkerAlt, FaRegClock, FaFilter, FaChevronLeft, FaChevronRight, FaBell, FaPlus, FaSearch, FaGraduationCap } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
+// Import framer-motion with a try-catch to handle build issues
+// Create a fallback implementation for motion components
+const createFallbackComponent = (Component: string) => {
+  return (props: any) => {
+    const { children, ...rest } = props;
+    return <div {...rest}>{children}</div>;
+  };
+};
+
+// Default fallback implementations
+let motion = {
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  div: createFallbackComponent('div'),
+  ul: createFallbackComponent('ul'),
+  li: createFallbackComponent('li'),
+  article: createFallbackComponent('article')
+};
+let AnimatePresence = motion.AnimatePresence;
+
+// Try to import the real framer-motion
+try {
+  const framerMotion = require('framer-motion');
+  motion = framerMotion;
+  AnimatePresence = framerMotion.AnimatePresence;
+} catch (error) {
+  console.warn('Framer Motion not available, using fallback components');
+}
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
