@@ -1,0 +1,3 @@
+email,first_name,last_name,graduation_year,major,company,job_title,location,bio,skills,is_mentor,mentor_topics
+example@example.com,John,Doe,2020,Computer Science,Tech Company,Software Engineer,New York,Short biography about the user,"javascript,react,node.js",TRUE,"career guidance,technical mentoring"
+example2@example.com,Jane,Smith,2019,Business Administration,Finance Corp,Financial Analyst,Chicago,Another user biography,"finance,accounting,excel",FALSE,
