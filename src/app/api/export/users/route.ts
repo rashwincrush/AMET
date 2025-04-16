@@ -3,6 +3,11 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { hasPermission } from '@/lib/roles';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 export async function GET(request: NextRequest) {
   const supabase = createRouteHandlerClient({ cookies });
   

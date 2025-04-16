@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 /**
  * @route GET /api/health
  * @description Health check endpoint for monitoring and container healthchecks

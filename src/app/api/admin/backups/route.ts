@@ -3,6 +3,11 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { hasPermission } from '@/lib/roles';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 // Helper function to check if user has admin access
 async function checkAdminAccess(supabase: any) {
   // Get current user

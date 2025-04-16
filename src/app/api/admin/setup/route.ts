@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 export async function POST(request: Request) {
   try {
     const { email } = await request.json();

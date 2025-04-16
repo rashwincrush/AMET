@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { assignAdminRole } from '@/lib/admin/assignAdminRole';
 import { supabase } from '@/lib/supabase';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 /**
  * API endpoint to assign admin role to a user
  * Requires the caller to be an admin

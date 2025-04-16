@@ -24,9 +24,11 @@ const nextConfig = {
   // Configure exporting options for static optimization
   trailingSlash: false,
   
-  // Configure API routes as edge functions to avoid SSR issues
+  // Configure API routes correctly for Next.js 14+
   experimental: {
-    serverComponents: true,
+    // These options are compatible with Next.js 14
+    serverActions: true,
+    serverActionsBodySizeLimit: '4mb'
   },
 };
 

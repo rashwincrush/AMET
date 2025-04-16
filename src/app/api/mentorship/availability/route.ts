@@ -3,6 +3,11 @@ import { supabase } from '@/lib/supabase';
 import { createServerClient } from '@/lib/supabase-server';
 import { cookies } from 'next/headers';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 // GET - Retrieve mentor availability slots
 export async function GET(request: NextRequest) {
   try {

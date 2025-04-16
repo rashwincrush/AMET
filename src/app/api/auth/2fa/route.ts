@@ -3,6 +3,11 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 // Helper function to log 2FA activities
 async function logActivity(supabase: any, userId: string, type: string, details: any = {}) {
   try {

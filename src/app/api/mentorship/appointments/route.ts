@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { mentorshipService } from '@/lib/services/mentorshipService';
 import { supabase } from '@/lib/supabase';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 // GET - Retrieve mentorship appointments
 export async function GET(request: NextRequest) {
   try {

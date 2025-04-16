@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 // GET /api/jobs - Get all job listings or filter by query params
 export async function GET(request: NextRequest) {
   try {

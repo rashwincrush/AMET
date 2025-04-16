@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 export async function GET() {
   try {
     // First try to select from the profiles table to see if the columns exist

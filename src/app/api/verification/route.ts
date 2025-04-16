@@ -3,6 +3,11 @@ import { supabase } from '@/lib/supabase';
 import { createServerClient } from '@/lib/supabase-server';
 import { cookies } from 'next/headers';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 export async function GET(request: NextRequest) {
   try {
     // Initialize server client to get authenticated user

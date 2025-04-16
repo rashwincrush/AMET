@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 import { populateDatabase } from '@/lib/populateDb';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 /**
  * API route to initialize the database with production data
  * POST /api/populate-db

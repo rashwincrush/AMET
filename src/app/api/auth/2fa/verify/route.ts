@@ -3,6 +3,11 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
+// Force dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 // Generate a device fingerprint from request data
 function generateDeviceFingerprint(request: NextRequest, userId: string) {
   const userAgent = request.headers.get('user-agent') || '';
