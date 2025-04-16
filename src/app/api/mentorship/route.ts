@@ -1,14 +1,16 @@
+import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { z } from 'zod';
+import { dynamic } from '../_skip-static';
 
 // Force dynamic to avoid static generation issues
-export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 
 // GET /api/mentorship - Get all mentorship relationships or filter by query params
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createClient();
     const searchParams = request.nextUrl.searchParams;
     const query = supabase.from('mentorship').select('*');
     
@@ -53,6 +55,7 @@ export async function GET(request: NextRequest) {
 // POST /api/mentorship - Create a new mentorship request
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createClient();
     const body = await request.json();
     
     // Validate required fields
@@ -85,6 +88,7 @@ export async function POST(request: NextRequest) {
 // PATCH /api/mentorship - Update a mentorship relationship status
 export async function PATCH(request: NextRequest) {
   try {
+    const supabase = createClient();
     const body = await request.json();
     const { id, ...updateData } = body;
     
@@ -115,6 +119,7 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/mentorship - End a mentorship relationship
 export async function DELETE(request: NextRequest) {
   try {
+    const supabase = createClient();
     const searchParams = request.nextUrl.searchParams;
     const id = searchParams.get('id');
     

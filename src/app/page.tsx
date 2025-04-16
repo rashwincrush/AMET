@@ -106,11 +106,11 @@ export default function Home() {
                   <div className="bg-white/20 p-4 rounded text-center">
                     <div className="text-3xl font-bold mb-1">350+</div>
                     <div className="text-sm">Job Opportunities</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        </div>
+      </div>
+    </div>
+      </div>
+        </div>
         </div>
       </section>
 
@@ -150,8 +150,8 @@ export default function Home() {
               buttonLink="/mentorship"
               color="orange"
             />
-          </div>
-        </div>
+      </div>
+    </div>
       </section>
 
       {/* Alumni Directory Preview */}
@@ -355,14 +355,14 @@ export default function Home() {
             <Button className="mt-4 md:mt-0 bg-purple-600 hover:bg-purple-700 text-white rounded-md">
               Browse All Jobs
             </Button>
-          </div>
-
+            </div>
+            
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
                 <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                   <h3 className="font-semibold text-gray-700">Featured Opportunities</h3>
-                  <div className="flex space-x-2">
+                    <div className="flex space-x-2">
                     <Button variant="outline" className="text-sm py-1 border-gray-300 text-gray-600">
                       Filter
                     </Button>
@@ -528,7 +528,7 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          
+
           <div className="mt-10 bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
             <div className="p-4 border-b border-gray-200 bg-gray-50">
               <h3 className="font-semibold text-gray-700">How Our Mentorship Program Works</h3>
@@ -715,7 +715,7 @@ function AlumniCard({ name, year, role, company, location }: AlumniCardProps) {
     <div className="p-4 border border-gray-100 rounded-lg hover:shadow-md transition-all duration-200">
       <div className="flex items-start">
         <div className="bg-gray-200 w-12 h-12 rounded-full mr-4"></div>
-        <div>
+    <div>
           <h4 className="font-semibold text-gray-800">{name}</h4>
           <p className="text-sm text-gray-500">{year}</p>
           <p className="text-sm text-gray-700 mt-2">{role}</p>
