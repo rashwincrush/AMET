@@ -3,5 +3,8 @@
   "buildCommand": "npm install framer-motion --save && npm run build",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_PUBLIC_VERCEL_ENV": "production"
+  }
 } 

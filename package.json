@@ -1,6 +1,6 @@
 {
   "name": "alumni-management-system",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "dev": "PORT=3000 next dev",
@@ -13,7 +13,8 @@
     "prod:start": "NODE_ENV=production next start",
     "start": "next start",
     "dev:start": "next dev -p 3000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "preinstall": "npm install framer-motion --no-save"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.6",
