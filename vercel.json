@@ -6,5 +6,10 @@
   "outputDirectory": ".next",
   "env": {
     "NEXT_PUBLIC_VERCEL_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NODE_PATH": "src"
+    }
   }
 } 
