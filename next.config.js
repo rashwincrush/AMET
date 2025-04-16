@@ -24,12 +24,8 @@ const nextConfig = {
   // Configure exporting options for static optimization
   trailingSlash: false,
   
-  // Configure API routes correctly for Next.js 14+
-  experimental: {
-    // These options are compatible with Next.js 14
-    serverActions: true,
-    serverActionsBodySizeLimit: '4mb'
-  },
+  // Output as static site to avoid SSR issues
+  output: process.env.SKIP_API_ROUTES ? 'export' : 'standalone',
 };
 
 module.exports = nextConfig;

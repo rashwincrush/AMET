@@ -417,4 +417,17 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
   }
 }
 
+// Add a hack to disable API routes during build
+if (process.env.SKIP_API_ROUTES === 'true') {
+  console.log('Adding dummy index.html to .next/server/app/api to prevent API routes from being generated');
+  
+  const apiDir = path.join(__dirname, '.next', 'server', 'app', 'api');
+  
+  // Create the directory if it doesn't exist
+  ensureDirectoryExists(apiDir);
+  
+  // Create a dummy index.html file to prevent API routes from being generated
+  fs.writeFileSync(path.join(apiDir, 'index.html'), '<!-- API routes disabled for static export -->');
+}
+
 console.log('Dependency installation and path setup completed'); 
