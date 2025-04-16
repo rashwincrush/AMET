@@ -1,13 +1,17 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm install tailwindcss postcss autoprefixer @emotion/is-prop-valid typescript @types/react @types/react-dom && node install-deps.js && npm run build",
+  "buildCommand": "npm run vercel-build",
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
+  "regions": ["iad1"],
   "env": {
     "NEXT_PUBLIC_VERCEL_ENV": "production",
     "NODE_ENV": "production",
-    "NEXT_TELEMETRY_DISABLED": "1"
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "NEXT_PUBLIC_USE_MOCK_DATA": "true",
+    "NEXT_DISABLE_ESLINT": "1",
+    "DISABLE_ESLINT_PLUGIN": "true"
   },
   "build": {
     "env": {
@@ -16,5 +20,16 @@
       "DISABLE_ESLINT_PLUGIN": "true",
       "NEXT_DISABLE_ESLINT": "1"
     }
-  }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
+      ]
+    }
+  ]
 } 

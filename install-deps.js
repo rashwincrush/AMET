@@ -177,6 +177,9 @@ const createMockClient = () => {
   };
 };
 
+// Safely check if we're on the server side
+const isServer = typeof window === 'undefined';
+
 // Create a real or mock Supabase client depending on environment
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -184,9 +187,9 @@ const useMockData = process.env.USE_MOCK_DATA === 'true';
 
 let supabaseClient;
 
-// In build environments, always use mock
-if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
-  console.log('Running in server production build - using mock Supabase client');
+// In server environments or build environments, always use mock
+if (isServer) {
+  console.log('Running in server environment - using mock Supabase client');
   supabaseClient = createMockClient();
 } else if (!supabaseUrl || !supabaseKey || useMockData) {
   console.log('Using mock Supabase client for development');
@@ -303,6 +306,9 @@ export { Calendar }
 `;
 
 const toastContent = `
+"use client"
+
+// Simple toast implementation for fallback
 export function useToast() {
   return {
     toast: ({ title, description }) => {
@@ -310,6 +316,16 @@ export function useToast() {
     },
   };
 }
+
+// Export the toast function directly for components that import it
+export const toast = ({ title, description }) => {
+  console.log({ title, description });
+  return {
+    id: 'toast-' + Date.now(),
+    dismiss: () => {},
+    update: () => {}
+  };
+};
 `;
 
 const utilsContent = `
