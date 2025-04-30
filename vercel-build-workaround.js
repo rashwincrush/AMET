@@ -129,10 +129,16 @@ const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   experimental: {
-    // Disable static generation for problematic pages
-    disableStaticGeneration: true,
     // This helps with the SSG issues
-    esmExternals: 'loose'
+    esmExternals: 'loose',
+    // Support SSR with Supabase
+    serverComponentsExternalPackages: ['@supabase/ssr']
+  },
+  // Use strict runtime to avoid static generation
+  staticPageGenerationTimeout: 1,
+  // Force dynamic rendering
+  compiler: {
+    styledComponents: true
   },
   images: {
     domains: ['localhost'],
@@ -261,16 +267,22 @@ function main() {
     // Step 2: Update next.config.js with special settings
     originalNextConfig = updateNextConfig();
     
-    // Step 3: Remove any conflicting pages router files
-    const pagesIndexFiles = [
-      path.join(process.cwd(), 'pages', 'index.js'),
-      path.join(process.cwd(), 'pages', 'index.jsx'),
-      path.join(process.cwd(), 'pages', 'index.tsx')
-    ];
+    // Step 3: Don't remove our fallback pages router file - we're using it intentionally
+    // Instead, ensure it exists by copying it from a backup if needed
+    const fallbackIndexFile = path.join(process.cwd(), 'pages', 'index.js');
+    const fallbackBackupFile = path.join(process.cwd(), '.fallback.index.js');
     
-    pagesIndexFiles.forEach(file => {
-      removeFileIfExists(file);
-    });
+    // Create a backup if it doesn't exist yet
+    if (fs.existsSync(fallbackIndexFile) && !fs.existsSync(fallbackBackupFile)) {
+      fs.copyFileSync(fallbackIndexFile, fallbackBackupFile);
+      log('Created backup of fallback pages/index.js');
+    }
+    
+    // Ensure the fallback file exists by restoring from backup if needed
+    if (!fs.existsSync(fallbackIndexFile) && fs.existsSync(fallbackBackupFile)) {
+      fs.copyFileSync(fallbackBackupFile, fallbackIndexFile);
+      log('Restored fallback pages/index.js from backup');
+    }
     
     // Step 4: Run the build
     const buildSuccess = runBuild();
