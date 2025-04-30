@@ -26,9 +26,16 @@ const nextConfig = {
   // Always use standalone mode for Vercel deployment to support dynamic routes
   output: 'standalone',
   
+  // Disable static optimization for root page
+  unstable_excludeFiles: ['**/src/app/page.tsx'],
+  
   // Enable experimental features to support Supabase SSR
   experimental: {
     serverComponentsExternalPackages: ['@supabase/ssr'],
+    // Force runtime for all pages
+    runtime: 'nodejs',
+    // Allow modifications to routes during build
+    transpilePackages: ['@supabase/auth-helpers-nextjs', '@supabase/ssr']
   },
 };
 
