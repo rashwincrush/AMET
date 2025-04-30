@@ -15,7 +15,7 @@
     "dev:start": "next dev -p 3000",
     "lint": "next lint",
     "preinstall": "npm install framer-motion --no-save",
-    "vercel-build": "npm install tailwindcss postcss autoprefixer @emotion/is-prop-valid typescript @types/react @types/react-dom && node install-deps.js && node fix-output-config.js && node vercel-build.js && DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_COMPILE_ONLY=true NODE_ENV=production next build",
+    "vercel-build": "npm install tailwindcss postcss autoprefixer @emotion/is-prop-valid typescript @types/react @types/react-dom && node install-deps.js && DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_COMPILE_ONLY=true NODE_ENV=production next build",
     "vercel:export": "SKIP_API_ROUTES=true NEXT_PUBLIC_USE_MOCK_DATA=true USE_MOCK_DATA=true next build"
   },
   "dependencies": {
