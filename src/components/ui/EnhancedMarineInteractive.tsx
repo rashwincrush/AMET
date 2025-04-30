@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Button } from './Button';
-import { useTheme } from './UnifiedThemeProvider';
+import { Button } from './button';
+import { useTheme } from './theme-provider';
 
 type SchoolType = {
   id: string;
