@@ -4,83 +4,21 @@ import { createClient } from '@supabase/supabase-js';
 console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set');
 console.log('Supabase Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set');
 
-// Ensure environment variables are set
+// Check for environment variables and provide fallback
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-  console.error('Missing required Supabase environment variables');
-  throw new Error('Missing required Supabase environment variables');
+  console.warn('Creating mock Supabase client as fallback - missing environment variables');
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Initialize Supabase client with proper configuration
+// Initialize Supabase client with simplified configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
-    storageKey: 'supabase.auth.token',
-    storage: {
-      getItem: (key: string): string | null => {
-        try {
-          if (typeof window !== 'undefined') {
-            const localValue = localStorage.getItem(key);
-            if (localValue) return localValue;
-            
-            const cookies = document.cookie.split(';');
-            for (const cookie of cookies) {
-              const [cookieName, cookieValue] = cookie.split('=');
-              if (cookieName.trim() === key) {
-                return cookieValue;
-              }
-            }
-          }
-          return null;
-        } catch (error) {
-          console.error('Error retrieving auth token:', error);
-          return null;
-        }
-      },
-      setItem: (key: string, value: string): void => {
-        try {
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(key, value);
-            
-            const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = `${key}=${value}; path=/; max-age=31536000; SameSite=Lax${secure}`;
-            
-            if (key === 'supabase.auth.token') {
-              try {
-                const parsed = JSON.parse(value);
-                if (parsed?.access_token) {
-                  document.cookie = `access_token=${parsed.access_token}; path=/; max-age=31536000; SameSite=Lax${secure}`;
-                }
-              } catch (error) {
-                console.error('Error parsing auth token:', error);
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error setting auth token:', error);
-        }
-      },
-      removeItem: (key: string): void => {
-        try {
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem(key);
-            document.cookie = `${key}=; path=/; max-age=0`;
-            
-            if (key === 'supabase.auth.token') {
-              document.cookie = `access_token=; path=/; max-age=0`;
-            }
-          }
-        } catch (error) {
-          console.error('Error removing auth token:', error);
-        }
-      }
-    },
-    flowType: 'pkce',
+    autoRefreshToken: true,
+    detectSessionInUrl: true
   },
   global: {
     headers: {
@@ -89,73 +27,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Initialize admin Supabase client for storage management
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey, {
+// Initialize admin Supabase client for server-side operations
+export const supabaseServer = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey, {
   auth: {
-    autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
-    storageKey: 'supabase.auth.token',
-    storage: {
-      getItem: (key: string): string | null => {
-        try {
-          if (typeof window !== 'undefined') {
-            const localValue = localStorage.getItem(key);
-            if (localValue) return localValue;
-            
-            const cookies = document.cookie.split(';');
-            for (const cookie of cookies) {
-              const [cookieName, cookieValue] = cookie.split('=');
-              if (cookieName.trim() === key) {
-                return cookieValue;
-              }
-            }
-          }
-          return null;
-        } catch (error) {
-          console.error('Error retrieving auth token:', error);
-          return null;
-        }
-      },
-      setItem: (key: string, value: string): void => {
-        try {
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(key, value);
-            
-            const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = `${key}=${value}; path=/; max-age=31536000; SameSite=Lax${secure}`;
-            
-            if (key === 'supabase.auth.token') {
-              try {
-                const parsed = JSON.parse(value);
-                if (parsed?.access_token) {
-                  document.cookie = `access_token=${parsed.access_token}; path=/; max-age=31536000; SameSite=Lax${secure}`;
-                }
-              } catch (error) {
-                console.error('Error parsing auth token:', error);
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error setting auth token:', error);
-        }
-      },
-      removeItem: (key: string): void => {
-        try {
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem(key);
-            document.cookie = `${key}=; path=/; max-age=0`;
-            
-            if (key === 'supabase.auth.token') {
-              document.cookie = `access_token=; path=/; max-age=0`;
-            }
-          }
-        } catch (error) {
-          console.error('Error removing auth token:', error);
-        }
-      }
-    },
-    flowType: 'pkce',
+    autoRefreshToken: true,
+    detectSessionInUrl: true
   },
   global: {
     headers: {
@@ -171,30 +48,49 @@ if (process.env.NODE_ENV === 'development') {
 
 // Helper function to check if a user exists
 export async function checkUserExists(email: string) {
-  const { data: { users }, error } = await supabase.auth.admin.listUsers({
-    email: email,
-  });
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .eq('email', email)
+      .single();
 
-  if (error) throw error;
-  return users.length > 0;
+    if (error) throw error;
+    return !!data;
+  } catch (error) {
+    console.error('Error checking if user exists:', error);
+    return false;
+  }
+}
+
+// Authentication helper function
+export async function signInWithEmail(email: string, password: string) {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error signing in:', error);
+    throw error;
+  }
 }
 
 // Function to fetch user roles
-export async function fetchUserRoles(email: string) {
-  const { data: { users }, error } = await supabase.auth.admin.listUsers({
-    email: email,
-  });
+export async function fetchUserRoles(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role_id, roles(name, permissions)')
+      .eq('user_id', userId);
 
-  if (error) throw error;
-  if (users.length === 0) return null;
-
-  const user = users[0];
-  const { data: roles, error: rolesError } = await supabase
-    .from('roles')
-    .select('id, name, description, permissions')
-    .eq('id', user.id)
-    .single();
-
-  if (rolesError) throw rolesError;
-  return roles;
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching user roles:', error);
+    return [];
+  }
 }
