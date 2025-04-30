@@ -431,7 +431,15 @@ export default function Document() {
 // Main function
 function main() {
   try {
-    log('Starting extreme Vercel build workaround...');
+    log('Starting Vercel production build workaround...');
+    log(`Build environment: NODE_ENV=${process.env.NODE_ENV}, VERCEL=${process.env.VERCEL || 'not set'}`);
+    
+    // Create marker file to indicate this is a production build
+    fs.writeFileSync(
+      path.join(process.cwd(), '.vercel-production-build'),
+      `Build started at ${new Date().toISOString()}\n` +
+      `This file indicates that the build was done with the production workaround.\n`
+    );
     
     // Debug directory structure
     log('Project root contents: ' + fs.readdirSync(process.cwd()).join(', '));

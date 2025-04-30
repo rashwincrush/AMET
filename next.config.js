@@ -1,5 +1,25 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
+const fs = require('fs');
+
+// Check if we're in production (Vercel) environment
+const isProduction = process.env.NODE_ENV === 'production';
+const isVercel = process.env.VERCEL === '1';
+
+// Ensure lib directory exists in production
+if (isProduction && !fs.existsSync(path.resolve('./lib'))) {
+  // Create lib directory if it doesn't exist
+  if (fs.existsSync(path.resolve('./src/lib'))) {
+    console.log('Creating lib directory for production...');
+    fs.mkdirSync(path.resolve('./lib'), { recursive: true });
+    
+    // Create a placeholder file
+    fs.writeFileSync(
+      path.resolve('./lib/index.js'),
+      '// Placeholder file to ensure directory exists\nmodule.exports = {}\n'
+    );
+  }
+}
 
 const nextConfig = {
   reactStrictMode: true,
