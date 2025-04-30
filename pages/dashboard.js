@@ -1,4 +1,6 @@
-'use client';
+// Dashboard page for Pages Router
+// This is a simplified version of the App Router dashboard
+// with styling that works in the production environment
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
