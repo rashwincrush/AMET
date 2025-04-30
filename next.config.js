@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
@@ -43,7 +45,21 @@ const nextConfig = {
   },
   
   // Correctly placed transpilePackages (outside of experimental)
-  transpilePackages: ['@supabase/auth-helpers-nextjs']
+  transpilePackages: ['@supabase/auth-helpers-nextjs'],
+  
+  // Add webpack configuration to resolve lib paths
+  webpack: (config, { isServer }) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '/lib': path.resolve(__dirname, './src/lib'),
+      'lib': path.resolve(__dirname, './src/lib'),
+      '/components': path.resolve(__dirname, './src/components'),
+      'components': path.resolve(__dirname, './src/components'),
+      '/hooks': path.resolve(__dirname, './src/hooks'),
+      'hooks': path.resolve(__dirname, './src/hooks')
+    };
+    return config;
+  }
 };
 
 module.exports = nextConfig;

@@ -429,6 +429,36 @@ function main() {
   try {
     log('Starting extreme Vercel build workaround...');
     
+    // Debug directory structure
+    log('Project root contents: ' + fs.readdirSync(process.cwd()).join(', '));
+    log('Src directory exists? ' + fs.existsSync(path.join(process.cwd(), 'src')));
+    if (fs.existsSync(path.join(process.cwd(), 'src'))) {
+      log('Src directory contents: ' + fs.readdirSync(path.join(process.cwd(), 'src')).join(', '));
+    }
+    log('Lib directory exists? ' + fs.existsSync(path.join(process.cwd(), 'lib')));
+    log('src/lib directory exists? ' + fs.existsSync(path.join(process.cwd(), 'src/lib')));
+    
+    // Ensure required directories exist
+    ensureDirectoryExists(path.join(process.cwd(), 'lib'));
+    ensureDirectoryExists(path.join(process.cwd(), 'components'));
+    ensureDirectoryExists(path.join(process.cwd(), 'hooks'));
+    
+    // Create symlinks if source directories exist
+    if (fs.existsSync(path.join(process.cwd(), 'src/lib'))) {
+      try {
+        fs.symlinkSync(
+          path.join(process.cwd(), 'src/lib'),
+          path.join(process.cwd(), 'lib'),
+          'dir'
+        );
+        log('Created symlink for lib directory');
+      } catch (error) {
+        if (error.code !== 'EEXIST') {
+          log(`Warning: Could not create lib symlink: ${error.message}`);
+        }
+      }
+    }
+    
     // Create a JS-only project for build
     const backups = createJsOnlyProject();
     
