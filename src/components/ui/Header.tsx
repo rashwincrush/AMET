@@ -6,7 +6,13 @@ import { Button } from '@/components/ui/button';
 import { FaUser, FaSignOutAlt, FaSignInAlt, FaUserPlus, FaLock } from 'react-icons/fa';
 
 export default function Header() {
-  const { user, signOut, userRole } = useAuth();
+  const { user, signOut } = useAuth();
+  
+  // Determine if user is admin - this would normally check a role claim or a profile lookup
+  // For now we'll use a simple check based on email or metadata
+  const isAdmin = user?.email?.endsWith('@admin.ametalumni.in') || 
+                 user?.app_metadata?.role === 'admin' || 
+                 user?.user_metadata?.role === 'admin';
 
   return (
     <header className="bg-white shadow-sm">
@@ -34,7 +40,7 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                {userRole === 'admin' && (
+                {isAdmin && (
                   <Link href="/admin" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
                     Admin Dashboard
                   </Link>
