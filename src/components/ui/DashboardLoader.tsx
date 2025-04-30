@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Card } from './Card';
-import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './CardComponents';
-import { Button } from './Button';
+import { Card } from './card';
+import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './card';
+import { Button } from './button';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
