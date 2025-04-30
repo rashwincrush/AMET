@@ -373,12 +373,16 @@ function restoreOriginalProject(backups) {
     log('Restored tsconfig.json');
   }
   
-  // Clean up temporary files
-  const pagesToClean = path.join(process.cwd(), 'pages');
-  if (fs.existsSync(pagesToClean)) {
-    cleanDirectory(pagesToClean);
-    log('Cleaned pages directory');
-  }
+  // DON'T clean up pages directory as Vercel needs these files
+  log('Preserving pages directory for Vercel deployment');
+  
+  // Create a marker file to indicate this is a clean slate build
+  fs.writeFileSync(
+    path.join(process.cwd(), '.clean-slate-build'),
+    `Built with Clean Slate approach on ${new Date().toISOString()}\n` +
+    `This file indicates that the build was done with the Clean Slate workaround.\n` +
+    `The /pages directory must be preserved for Vercel to properly serve the application.`
+  );
 }
 
 // Run the Next.js build command
