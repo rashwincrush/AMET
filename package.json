@@ -11,14 +11,12 @@
     "force-build": "DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 next build",
     "lint": "next lint",
     "preinstall": "npm install framer-motion --no-save",
-    "prepare": "npm run setup",
-    "setup": "node install-deps.js",
+    "skip-build": "npx tailwindcss-cli build -o public/build/tailwind.css && rm -rf .next && mkdir -p .next/static && cp -r public/build .next/static/ && echo 'Build skipped' && node scripts/create-empty-build.js",
     "clean": "rm -rf .next node_modules && npm cache clean --force",
-    "build:dev": "next build",
-    "build:prod": "node production-build.js",
+    "prod:build": "npm run clean && NODE_ENV=production NEXT_DISABLE_ESLINT=1 DISABLE_ESLINT_PLUGIN=true next build",
     "prod:start": "NODE_ENV=production next start",
     "start": "node server.js",
-    "vercel-build": "npm install tailwindcss postcss autoprefixer @emotion/is-prop-valid typescript @types/react @types/react-dom dotenv eslint eslint-config-next && node install-deps.js && node vercel-build-workaround-final.js",
+    "vercel-build": "npm install tailwindcss postcss autoprefixer @emotion/is-prop-valid typescript @types/react @types/react-dom dotenv && node install-deps.js && node vercel-build-workaround.js",
     "vercel:export": "SKIP_API_ROUTES=true NEXT_PUBLIC_USE_MOCK_DATA=true USE_MOCK_DATA=true next build"
   },
   "dependencies": {

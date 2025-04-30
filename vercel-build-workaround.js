@@ -3,324 +3,147 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// Helper function for logging with timestamp
-function log(message) {
-  console.log(`[${new Date().toISOString()}] ${message}`);
-}
-
-// Check if a file exists and rename it temporarily
-function tempRenameFile(filePath) {
-  if (fs.existsSync(filePath)) {
-    const backupPath = `${filePath}.bak`;
-    log(`Temporarily renaming ${filePath} to ${backupPath}`);
-    fs.renameSync(filePath, backupPath);
-    return true;
-  }
-  return false;
-}
-
-// Restore a temporarily renamed file
-function restoreFile(filePath) {
-  const backupPath = `${filePath}.bak`;
-  if (fs.existsSync(backupPath)) {
-    log(`Restoring ${backupPath} to ${filePath}`);
-    fs.renameSync(backupPath, filePath);
-    return true;
-  }
-  return false;
-}
-
-// Remove a file if it exists
-function removeFileIfExists(filePath) {
-  if (fs.existsSync(filePath)) {
-    log(`Removing ${filePath}`);
-    fs.unlinkSync(filePath);
-    return true;
-  }
-  return false;
-}
-
-// Locate the actual main page file - handles route groups like (main)
-function findMainPageFile() {
-  // Check common locations and extensions
-  const possibleLocations = [
-    // App router with route groups
-    path.join(process.cwd(), 'src', 'app', '(main)', 'page.tsx'),
-    path.join(process.cwd(), 'src', 'app', '(main)', 'page.jsx'),
-    path.join(process.cwd(), 'src', 'app', '(main)', 'page.js'),
-    path.join(process.cwd(), 'app', '(main)', 'page.tsx'),
-    path.join(process.cwd(), 'app', '(main)', 'page.jsx'),
-    path.join(process.cwd(), 'app', '(main)', 'page.js'),
-    
-    // Standard app router locations
-    path.join(process.cwd(), 'src', 'app', 'page.tsx'),
-    path.join(process.cwd(), 'src', 'app', 'page.jsx'),
-    path.join(process.cwd(), 'src', 'app', 'page.js'),
-    path.join(process.cwd(), 'app', 'page.tsx'),
-    path.join(process.cwd(), 'app', 'page.jsx'),
-    path.join(process.cwd(), 'app', 'page.js'),
-  ];
+// Function to create a simple placeholder root page
+function createRootPageWorkaround() {
+  console.log('Creating static root page workaround...');
+  const appDir = path.resolve('./src/app');
+  const pageDir = path.resolve('./pages');
   
-  for (const location of possibleLocations) {
-    if (fs.existsSync(location)) {
-      return location;
-    }
+  // Create a pages directory if it doesn't exist
+  if (!fs.existsSync(pageDir)) {
+    fs.mkdirSync(pageDir, { recursive: true });
   }
   
-  return null;
-}
+  // Create a simple index.js file in pages directory that redirects to /home
+  // This will use the Pages Router instead of App Router for just the root
+  const content = `
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
-// Create a simple client-side only app page
-function createClientOnlyAppPage(filePath) {
-  // Get directory of the file
-  const dir = path.dirname(filePath);
-  
-  // Create a client-only page that won't be statically generated
-  const clientOnlyPageContent = `
-'use client';
-
-import { useEffect, useState } from 'react';
-
-// This forces Next.js to render this page on-demand instead of statically generating it
-export default function HomePage() {
-  const [isClient, setIsClient] = useState(false);
+export default function RedirectHome() {
+  const router = useRouter();
   
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    router.push('/home');
+  }, [router]);
   
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4">
-      <h1 className="text-4xl font-bold mb-6">Alumni Management System</h1>
-      <p className="mb-8 text-lg text-center max-w-md">
-        Connect with fellow alumni, discover events, and explore career opportunities.
-      </p>
-      <a 
-        href="/dashboard" 
-        className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-      >
-        Enter Portal
-      </a>
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'column',
+      padding: '1rem',
+      textAlign: 'center',
+      backgroundColor: '#f5f5f5',
+    }}>
+      <div style={{
+        maxWidth: '32rem',
+        width: '100%',
+        backgroundColor: 'white',
+        borderRadius: '0.75rem',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        padding: '2rem',
+      }}>
+        <h1 style={{
+          fontSize: '1.875rem',
+          fontWeight: 'bold',
+          color: '#2563eb',
+          marginBottom: '1rem',
+        }}>AMET Alumni Portal</h1>
+        <p style={{
+          color: '#6b7280',
+          marginBottom: '1.5rem',
+        }}>Welcome to the AMET Alumni Management System</p>
+        <a 
+          href="/home"
+          style={{
+            display: 'block',
+            width: '100%',
+            padding: '0.75rem 1rem',
+            backgroundColor: '#2563eb',
+            color: 'white',
+            textAlign: 'center',
+            fontWeight: '500',
+            borderRadius: '0.375rem',
+            textDecoration: 'none',
+          }}
+        >
+          Enter Alumni Portal
+        </a>
+        <p style={{
+          marginTop: '1rem',
+          fontSize: '0.875rem',
+          color: '#9ca3af',
+        }}>Redirecting to portal...</p>
+      </div>
     </div>
   );
 }
-  `.trim();
+  `;
   
-  log(`Creating client-only app page at ${filePath}`);
-  fs.writeFileSync(filePath, clientOnlyPageContent, 'utf8');
-}
-
-// Create next.config.js with special settings to avoid the prerendering error
-function updateNextConfig() {
-  const configPath = path.join(process.cwd(), 'next.config.js');
-  let originalContent = null;
+  fs.writeFileSync(path.resolve(pageDir, 'index.js'), content, 'utf8');
+  console.log('Created pages/index.js workaround');
   
-  // Backup original config if it exists
-  if (fs.existsSync(configPath)) {
-    originalContent = fs.readFileSync(configPath, 'utf8');
-    fs.writeFileSync(`${configPath}.bak`, originalContent, 'utf8');
-    log('Backed up original next.config.js');
-  }
-  
-  // Create a specialized config for the build
-  const newConfig = `
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'standalone',
-  reactStrictMode: true,
-  experimental: {
-    // This helps with the SSG issues
-    esmExternals: 'loose',
-    // Support SSR with Supabase
-    serverComponentsExternalPackages: ['@supabase/ssr']
-  },
-  // Use strict runtime to avoid static generation
-  staticPageGenerationTimeout: 1,
-  // Force dynamic rendering
-  compiler: {
-    styledComponents: true
-  },
-  images: {
-    domains: ['localhost'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
-  },
-}
-
-module.exports = nextConfig
-  `.trim();
-  
-  fs.writeFileSync(configPath, newConfig, 'utf8');
-  log('Created specialized next.config.js for build');
-  
-  return originalContent;
-}
-
-// Restore the original next.config.js if it existed
-function restoreNextConfig(originalContent) {
-  const configPath = path.join(process.cwd(), 'next.config.js');
-  
-  if (originalContent) {
-    fs.writeFileSync(configPath, originalContent, 'utf8');
-    log('Restored original next.config.js');
-  } else if (fs.existsSync(`${configPath}.bak`)) {
-    const backupContent = fs.readFileSync(`${configPath}.bak`, 'utf8');
-    fs.writeFileSync(configPath, backupContent, 'utf8');
-    log('Restored next.config.js from backup');
-    fs.unlinkSync(`${configPath}.bak`);
+  // Temporarily rename the app/page.tsx to make sure it's not used
+  if (fs.existsSync(path.resolve(appDir, 'page.tsx'))) {
+    fs.renameSync(
+      path.resolve(appDir, 'page.tsx'),
+      path.resolve(appDir, 'page.tsx.bak')
+    );
+    console.log('Temporarily renamed app/page.tsx');
   }
 }
 
-// Also handle layout files near the main page
-function findAndBackupLayoutFiles(mainPageDir) {
-  const layoutFiles = [
-    path.join(mainPageDir, 'layout.tsx'),
-    path.join(mainPageDir, 'layout.jsx'),
-    path.join(mainPageDir, 'layout.js')
-  ];
-  
-  const backedUpLayouts = [];
-  
-  for (const layoutFile of layoutFiles) {
-    if (fs.existsSync(layoutFile)) {
-      const content = fs.readFileSync(layoutFile, 'utf8');
-      fs.writeFileSync(`${layoutFile}.bak`, content, 'utf8');
-      backedUpLayouts.push(layoutFile);
-      
-      log(`Backed up layout file: ${layoutFile}`);
-      
-      // Now modify the layout to be as simple as possible
-      const simpleLayout = `
-export default function Layout({ children }) {
-  return children;
-}
-      `.trim();
-      
-      fs.writeFileSync(layoutFile, simpleLayout, 'utf8');
-    }
-  }
-  
-  return backedUpLayouts;
-}
-
-// Restore backed up layout files
-function restoreLayoutFiles(layoutFiles) {
-  for (const layoutFile of layoutFiles) {
-    if (fs.existsSync(`${layoutFile}.bak`)) {
-      fs.copyFileSync(`${layoutFile}.bak`, layoutFile);
-      fs.unlinkSync(`${layoutFile}.bak`);
-      log(`Restored layout file: ${layoutFile}`);
-    }
-  }
-}
-
-// Run the Next.js build command with special settings
+// Function to run the build with specific environment variables
 function runBuild() {
-  log('Running Next.js build with special settings...');
+  const appDir = path.resolve('./src/app'); // Define appDir here as well
+  console.log('Running Next.js build with workaround...');
   try {
-    execSync('NEXT_DISABLE_SSGFALLBACK=true DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_COMPILE_ONLY=true NODE_ENV=production next build', {
-      stdio: 'inherit',
-      env: {
-        ...process.env,
-        NEXT_TELEMETRY_DISABLED: '1',
-        NODE_ENV: 'production',
-        NEXT_DISABLE_SSGFALLBACK: 'true'
-      }
-    });
-    log('Build completed successfully');
+    execSync(
+      'DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_COMPILE_ONLY=true NODE_ENV=production next build',
+      { stdio: 'inherit' }
+    );
+    console.log('Build completed successfully');
+    
+    // Restore the original files after build
+    if (fs.existsSync(path.resolve(appDir, 'page.tsx.bak'))) {
+      fs.renameSync(
+        path.resolve(appDir, 'page.tsx.bak'),
+        path.resolve(appDir, 'page.tsx')
+      );
+      console.log('Restored original app/page.tsx');
+    }
+    
     return true;
   } catch (error) {
-    log(`Build failed: ${error.message}`);
+    console.error('Build failed:', error);
     return false;
   }
 }
 
-// Main function
-function main() {
-  log('Starting Vercel build workaround script');
+// Main function to execute the build process
+async function main() {
+  console.log('Starting Vercel build workaround script');
   
-  // Step 1: Find and backup the app router main page
-  const mainPageFile = findMainPageFile();
-  let originalPageContent = null;
-  let originalNextConfig = null;
-  let backedUpLayouts = [];
+  // Create the workaround for the root page
+  createRootPageWorkaround();
   
-  try {
-    if (mainPageFile) {
-      log(`Found main page at: ${mainPageFile}`);
-      originalPageContent = fs.readFileSync(mainPageFile, 'utf8');
-      
-      // Also back up and simplify layout files
-      const mainPageDir = path.dirname(mainPageFile);
-      backedUpLayouts = findAndBackupLayoutFiles(mainPageDir);
-      
-      // Create a client-only version of the page
-      createClientOnlyAppPage(mainPageFile);
-    } else {
-      log('Warning: Could not find main page file');
-    }
-    
-    // Step 2: Update next.config.js with special settings
-    originalNextConfig = updateNextConfig();
-    
-    // Step 3: Remove any pages router files that might conflict with App Router
-    // We're fully committing to App Router architecture
-    const pagesDir = path.join(process.cwd(), 'pages');
-    if (fs.existsSync(pagesDir)) {
-      try {
-        // Use a simple way to delete the directory
-        fs.rmdirSync(pagesDir, { recursive: true });
-        log('Removed Pages Router directory to avoid conflicts');
-      } catch (err) {
-        log(`Warning: Could not remove Pages Router directory: ${err.message}`);
-      }
-    }
-    
-    // Step 4: Run the build
-    const buildSuccess = runBuild();
-    
-    // Step 5: Restore original files
-    if (mainPageFile && originalPageContent) {
-      log(`Restoring original content to ${mainPageFile}`);
-      fs.writeFileSync(mainPageFile, originalPageContent, 'utf8');
-    }
-    
-    // Restore layouts
-    restoreLayoutFiles(backedUpLayouts);
-    
-    // Restore next.config.js
-    restoreNextConfig(originalNextConfig);
-    
-    // Exit with appropriate code
-    if (!buildSuccess) {
-      log('❌ Build failed even with workaround');
-      process.exit(1);
-    }
-    
-    log('✅ Build completed successfully with workaround');
-  } catch (error) {
-    // If anything goes wrong, make sure we restore the original files
-    log(`Error during build process: ${error.message}`);
-    
-    if (mainPageFile && originalPageContent) {
-      try {
-        fs.writeFileSync(mainPageFile, originalPageContent, 'utf8');
-        log('Restored original main page content');
-      } catch (err) {
-        log(`Failed to restore main page: ${err.message}`);
-      }
-    }
-    
-    restoreLayoutFiles(backedUpLayouts);
-    restoreNextConfig(originalNextConfig);
-    
+  // Run the build with the workaround in place
+  const buildSuccess = runBuild();
+  
+  if (buildSuccess) {
+    console.log('✅ Build completed successfully with workaround');
+    process.exit(0);
+  } else {
+    console.error('❌ Build failed even with workaround');
     process.exit(1);
   }
 }
 
-// Run the script
-main();
+// Execute the script
+main().catch(error => {
+  console.error('Unexpected error:', error);
+  process.exit(1);
+});

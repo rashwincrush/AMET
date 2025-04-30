@@ -110,7 +110,6 @@ export const useOceanTheme = () => {
 
 type OceanThemeProviderProps = {
   children: ReactNode;
-  defaultTheme?: string;
 };
 
 export function OceanThemeProvider({
