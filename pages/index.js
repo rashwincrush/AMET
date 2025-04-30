@@ -5,8 +5,8 @@ export default function Home() {
   const router = useRouter();
   
   const handleEnterPortal = () => {
-    // Navigate to the dashboard/home page
-    router.push('/home');
+    // Navigate to the dashboard page
+    router.push('/dashboard');
   };
   
   return (
