@@ -5,8 +5,10 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "regions": ["iad1"],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ],
   "env": {
-    "NEXT_PUBLIC_VERCEL_ENV": "production",
     "NODE_ENV": "production",
     "NEXT_TELEMETRY_DISABLED": "1",
     "NEXT_PUBLIC_USE_MOCK_DATA": "true",
