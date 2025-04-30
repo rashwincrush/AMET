@@ -3,147 +3,180 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// Function to create a simple placeholder root page
-function createRootPageWorkaround() {
-  console.log('Creating static root page workaround...');
-  const appDir = path.resolve('./src/app');
-  const pageDir = path.resolve('./pages');
+// Helper function for logging with timestamp
+function log(message) {
+  console.log(`[${new Date().toISOString()}] ${message}`);
+}
+
+// Check if a file exists and rename it temporarily
+function tempRenameFile(filePath) {
+  if (fs.existsSync(filePath)) {
+    const backupPath = `${filePath}.bak`;
+    log(`Temporarily renaming ${filePath} to ${backupPath}`);
+    fs.renameSync(filePath, backupPath);
+    return true;
+  }
+  return false;
+}
+
+// Restore a temporarily renamed file
+function restoreFile(filePath) {
+  const backupPath = `${filePath}.bak`;
+  if (fs.existsSync(backupPath)) {
+    log(`Restoring ${backupPath} to ${filePath}`);
+    fs.renameSync(backupPath, filePath);
+    return true;
+  }
+  return false;
+}
+
+// Remove a file if it exists
+function removeFileIfExists(filePath) {
+  if (fs.existsSync(filePath)) {
+    log(`Removing ${filePath}`);
+    fs.unlinkSync(filePath);
+    return true;
+  }
+  return false;
+}
+
+// Locate the actual main page file - handles route groups like (main)
+function findMainPageFile() {
+  // Check common locations and extensions
+  const possibleLocations = [
+    // App router with route groups
+    path.join(process.cwd(), 'src', 'app', '(main)', 'page.tsx'),
+    path.join(process.cwd(), 'src', 'app', '(main)', 'page.jsx'),
+    path.join(process.cwd(), 'src', 'app', '(main)', 'page.js'),
+    path.join(process.cwd(), 'app', '(main)', 'page.tsx'),
+    path.join(process.cwd(), 'app', '(main)', 'page.jsx'),
+    path.join(process.cwd(), 'app', '(main)', 'page.js'),
+    
+    // Standard app router locations
+    path.join(process.cwd(), 'src', 'app', 'page.tsx'),
+    path.join(process.cwd(), 'src', 'app', 'page.jsx'),
+    path.join(process.cwd(), 'src', 'app', 'page.js'),
+    path.join(process.cwd(), 'app', 'page.tsx'),
+    path.join(process.cwd(), 'app', 'page.jsx'),
+    path.join(process.cwd(), 'app', 'page.js'),
+  ];
   
-  // Create a pages directory if it doesn't exist
-  if (!fs.existsSync(pageDir)) {
-    fs.mkdirSync(pageDir, { recursive: true });
+  for (const location of possibleLocations) {
+    if (fs.existsSync(location)) {
+      return location;
+    }
   }
   
-  // Create a simple index.js file in pages directory that redirects to /home
-  // This will use the Pages Router instead of App Router for just the root
-  const content = `
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+  return null;
+}
 
-export default function RedirectHome() {
-  const router = useRouter();
+// Create static index.js in /app directory
+function createStaticAppPage(filePath) {
+  // Get directory of the file
+  const dir = path.dirname(filePath);
   
-  useEffect(() => {
-    router.push('/home');
-  }, [router]);
-  
+  // Create a static app page
+  const staticPageContent = `
+export const dynamic = 'force-static';
+
+export default function HomePage() {
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'column',
-      padding: '1rem',
-      textAlign: 'center',
-      backgroundColor: '#f5f5f5',
-    }}>
-      <div style={{
-        maxWidth: '32rem',
-        width: '100%',
-        backgroundColor: 'white',
-        borderRadius: '0.75rem',
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        padding: '2rem',
-      }}>
-        <h1 style={{
-          fontSize: '1.875rem',
-          fontWeight: 'bold',
-          color: '#2563eb',
-          marginBottom: '1rem',
-        }}>AMET Alumni Portal</h1>
-        <p style={{
-          color: '#6b7280',
-          marginBottom: '1.5rem',
-        }}>Welcome to the AMET Alumni Management System</p>
-        <a 
-          href="/home"
-          style={{
-            display: 'block',
-            width: '100%',
-            padding: '0.75rem 1rem',
-            backgroundColor: '#2563eb',
-            color: 'white',
-            textAlign: 'center',
-            fontWeight: '500',
-            borderRadius: '0.375rem',
-            textDecoration: 'none',
-          }}
-        >
-          Enter Alumni Portal
-        </a>
-        <p style={{
-          marginTop: '1rem',
-          fontSize: '0.875rem',
-          color: '#9ca3af',
-        }}>Redirecting to portal...</p>
-      </div>
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
+      <h1 className="text-4xl font-bold mb-6">Alumni Management System</h1>
+      <p className="mb-8 text-lg text-center max-w-md">
+        Connect with fellow alumni, discover events, and explore career opportunities.
+      </p>
+      <a 
+        href="/home" 
+        className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+      >
+        Enter Portal
+      </a>
     </div>
   );
 }
-  `;
+
+export function generateMetadata() {
+  return {
+    title: 'Alumni Management System',
+    description: 'Connect with fellow alumni, discover events, and explore career opportunities',
+  };
+}
+  `.trim();
   
-  fs.writeFileSync(path.resolve(pageDir, 'index.js'), content, 'utf8');
-  console.log('Created pages/index.js workaround');
-  
-  // Temporarily rename the app/page.tsx to make sure it's not used
-  if (fs.existsSync(path.resolve(appDir, 'page.tsx'))) {
-    fs.renameSync(
-      path.resolve(appDir, 'page.tsx'),
-      path.resolve(appDir, 'page.tsx.bak')
-    );
-    console.log('Temporarily renamed app/page.tsx');
-  }
+  log(`Creating static app page at ${filePath}`);
+  fs.writeFileSync(filePath, staticPageContent, 'utf8');
 }
 
-// Function to run the build with specific environment variables
+// Run the Next.js build command
 function runBuild() {
-  const appDir = path.resolve('./src/app'); // Define appDir here as well
-  console.log('Running Next.js build with workaround...');
+  log('Running Next.js build...');
   try {
-    execSync(
-      'DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_COMPILE_ONLY=true NODE_ENV=production next build',
-      { stdio: 'inherit' }
-    );
-    console.log('Build completed successfully');
-    
-    // Restore the original files after build
-    if (fs.existsSync(path.resolve(appDir, 'page.tsx.bak'))) {
-      fs.renameSync(
-        path.resolve(appDir, 'page.tsx.bak'),
-        path.resolve(appDir, 'page.tsx')
-      );
-      console.log('Restored original app/page.tsx');
-    }
-    
+    execSync('DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_COMPILE_ONLY=true NODE_ENV=production next build', {
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        NEXT_TELEMETRY_DISABLED: '1',
+        NODE_ENV: 'production'
+      }
+    });
+    log('Build completed successfully');
     return true;
   } catch (error) {
-    console.error('Build failed:', error);
+    log(`Build failed: ${error.message}`);
     return false;
   }
 }
 
-// Main function to execute the build process
-async function main() {
-  console.log('Starting Vercel build workaround script');
+// Main function
+function main() {
+  log('Starting Vercel build workaround script');
   
-  // Create the workaround for the root page
-  createRootPageWorkaround();
+  // Step 1: Find and backup the app router main page
+  const mainPageFile = findMainPageFile();
+  let originalPageContent = null;
   
-  // Run the build with the workaround in place
+  if (mainPageFile) {
+    log(`Found main page at: ${mainPageFile}`);
+    originalPageContent = fs.readFileSync(mainPageFile, 'utf8');
+    tempRenameFile(mainPageFile);
+  } else {
+    log('Warning: Could not find main page file');
+  }
+  
+  // Step 2: Remove any conflicting pages router files
+  const pagesIndexFiles = [
+    path.join(process.cwd(), 'pages', 'index.js'),
+    path.join(process.cwd(), 'pages', 'index.jsx'),
+    path.join(process.cwd(), 'pages', 'index.tsx')
+  ];
+  
+  pagesIndexFiles.forEach(file => {
+    removeFileIfExists(file);
+  });
+  
+  // Step 3: Create a new static app page
+  if (mainPageFile) {
+    createStaticAppPage(mainPageFile);
+  }
+  
+  // Step 4: Run the build
   const buildSuccess = runBuild();
   
-  if (buildSuccess) {
-    console.log('✅ Build completed successfully with workaround');
-    process.exit(0);
-  } else {
-    console.error('❌ Build failed even with workaround');
+  // Step 5: Restore original files
+  if (mainPageFile && originalPageContent) {
+    log(`Restoring original content to ${mainPageFile}`);
+    fs.writeFileSync(mainPageFile, originalPageContent, 'utf8');
+  }
+  
+  // Exit with appropriate code
+  if (!buildSuccess) {
+    log('❌ Build failed even with workaround');
     process.exit(1);
   }
+  
+  log('✅ Build completed successfully with workaround');
 }
 
-// Execute the script
-main().catch(error => {
-  console.error('Unexpected error:', error);
-  process.exit(1);
-});
+// Run the script
+main();
