@@ -3,6 +3,26 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 
+// List of public routes that don't require authentication
+const PUBLIC_ROUTES = [
+  '/home',
+  '/about',
+  '/auth/login',
+  '/auth/signup',
+  '/jobs'
+];
+
+// Check if the route is public
+function isPublicRoute(path: string) {
+  return PUBLIC_ROUTES.some(route => path.startsWith(route)) ||
+    path.startsWith('/_next') ||
+    path.startsWith('/api/public') ||
+    path.includes('favicon.ico') ||
+    path.includes('.png') ||
+    path.includes('.jpg') ||
+    path.includes('.svg');
+}
+
 // Add security headers and handle root page redirect
 export async function middleware(request: NextRequest) {
   // Handle root route redirection to avoid static generation issues
@@ -18,14 +38,22 @@ export async function middleware(request: NextRequest) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
   
-  try {
-    // Create a Supabase client for handling auth in middleware
-    const supabase = createMiddlewareClient({ req: request, res: response });
-    
-    // Optional: refresh session if expired
-    await supabase.auth.getSession();
-  } catch (e) {
-    console.error('Middleware auth error:', e);
+  // Only check authentication for non-public routes
+  if (!isPublicRoute(request.nextUrl.pathname)) {
+    try {
+      // Create a Supabase client for handling auth in middleware
+      const supabase = createMiddlewareClient({ req: request, res: response });
+      
+      // Check the session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // If no session and trying to access protected route, redirect to login
+      if (!session && !isPublicRoute(request.nextUrl.pathname)) {
+        return NextResponse.redirect(new URL('/auth/login', request.url));
+      }
+    } catch (e) {
+      console.error('Middleware auth error:', e);
+    }
   }
   
   return response;
