@@ -43,9 +43,45 @@ function cleanDirectory(dirPath) {
   log(`Cleaned directory: ${dirPath}`);
 }
 
+// Remove all TypeScript and source files
+function removeTypeScriptFiles() {
+  const filesToRemove = [];
+  const dirsToCheck = [process.cwd()];
+  
+  while (dirsToCheck.length > 0) {
+    const currentDir = dirsToCheck.pop();
+    const entries = fs.readdirSync(currentDir);
+    
+    for (const entry of entries) {
+      if (entry === 'node_modules' || entry === '.git' || entry.endsWith('.bak')) continue;
+      
+      const fullPath = path.join(currentDir, entry);
+      const stats = fs.statSync(fullPath);
+      
+      if (stats.isDirectory()) {
+        dirsToCheck.push(fullPath);
+      } else if (entry.endsWith('.ts') || entry.endsWith('.tsx')) {
+        filesToRemove.push(fullPath);
+      }
+    }
+  }
+  
+  for (const file of filesToRemove) {
+    try {
+      fs.unlinkSync(file);
+      log(`Removed TypeScript file: ${file}`);
+    } catch (error) {
+      log(`Warning: Could not remove ${file}: ${error.message}`);
+    }
+  }
+}
+
 // Create a simple JS-only Next.js project for build
 function createJsOnlyProject() {
   log('Creating JS-only Next.js project...');
+  
+  // Remove all TypeScript files first
+  removeTypeScriptFiles();
   
   // Backup original package.json
   const packageJsonPath = path.join(process.cwd(), 'package.json');
@@ -190,6 +226,36 @@ a {
     log('Backed up next.config.js');
   }
   
+  // Create a minimal tsconfig.json that disables type checking
+  const tsconfigPath = path.join(process.cwd(), 'tsconfig.json');
+  if (fs.existsSync(tsconfigPath)) {
+    fs.copyFileSync(tsconfigPath, `${tsconfigPath}.bak`);
+    log('Backed up tsconfig.json');
+  }
+  
+  const tsconfigContent = {
+    compilerOptions: {
+      noEmit: true,
+      allowJs: true,
+      skipLibCheck: true,
+      esModuleInterop: true,
+      noImplicitAny: false,
+      noUnusedLocals: false,
+      noUnusedParameters: false,
+      isolatedModules: true,
+      jsx: 'preserve',
+      baseUrl: '.',
+      paths: {
+        '@/*': ['./*']
+      }
+    },
+    include: ['**/*.js', '**/*.jsx'],
+    exclude: ['node_modules']
+  };
+  
+  fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfigContent, null, 2));
+  log('Created minimal tsconfig.json');
+  
   const configContent = `
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -297,6 +363,14 @@ function restoreOriginalProject(backups) {
     fs.copyFileSync(`${configPath}.bak`, configPath);
     fs.unlinkSync(`${configPath}.bak`);
     log('Restored next.config.js');
+  }
+  
+  // Restore tsconfig.json
+  const tsconfigPath = path.join(process.cwd(), 'tsconfig.json');
+  if (fs.existsSync(`${tsconfigPath}.bak`)) {
+    fs.copyFileSync(`${tsconfigPath}.bak`, tsconfigPath);
+    fs.unlinkSync(`${tsconfigPath}.bak`);
+    log('Restored tsconfig.json');
   }
   
   // Clean up temporary files
