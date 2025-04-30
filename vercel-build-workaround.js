@@ -267,21 +267,17 @@ function main() {
     // Step 2: Update next.config.js with special settings
     originalNextConfig = updateNextConfig();
     
-    // Step 3: Don't remove our fallback pages router file - we're using it intentionally
-    // Instead, ensure it exists by copying it from a backup if needed
-    const fallbackIndexFile = path.join(process.cwd(), 'pages', 'index.js');
-    const fallbackBackupFile = path.join(process.cwd(), '.fallback.index.js');
-    
-    // Create a backup if it doesn't exist yet
-    if (fs.existsSync(fallbackIndexFile) && !fs.existsSync(fallbackBackupFile)) {
-      fs.copyFileSync(fallbackIndexFile, fallbackBackupFile);
-      log('Created backup of fallback pages/index.js');
-    }
-    
-    // Ensure the fallback file exists by restoring from backup if needed
-    if (!fs.existsSync(fallbackIndexFile) && fs.existsSync(fallbackBackupFile)) {
-      fs.copyFileSync(fallbackBackupFile, fallbackIndexFile);
-      log('Restored fallback pages/index.js from backup');
+    // Step 3: Remove any pages router files that might conflict with App Router
+    // We're fully committing to App Router architecture
+    const pagesDir = path.join(process.cwd(), 'pages');
+    if (fs.existsSync(pagesDir)) {
+      try {
+        // Use a simple way to delete the directory
+        fs.rmdirSync(pagesDir, { recursive: true });
+        log('Removed Pages Router directory to avoid conflicts');
+      } catch (err) {
+        log(`Warning: Could not remove Pages Router directory: ${err.message}`);
+      }
     }
     
     // Step 4: Run the build

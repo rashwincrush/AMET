@@ -20,15 +20,26 @@ const nextConfig = {
   productionBrowserSourceMaps: false, // Disable source maps in production
   compress: true, // Enable compression
   
-  // Configure exporting options for static optimization
-  trailingSlash: false,
+  // Set short timeout for static generation to prevent hanging on dynamic routes
+  staticPageGenerationTimeout: 30,
   
   // Always use standalone mode for Vercel deployment to support dynamic routes
   output: 'standalone',
   
+  // App Router specific optimizations
+  compiler: {
+    // Enable styled-components and reduce static generation
+    styledComponents: true
+  },
+  
   // Enable external packages for server components
   experimental: {
-    serverComponentsExternalPackages: ['@supabase/ssr']
+    // Support SSR with Supabase
+    serverComponentsExternalPackages: ['@supabase/ssr'],
+    // This helps with SSG issues
+    esmExternals: 'loose',
+    // Explicitly disable static export
+    isrMemoryCacheSize: 0
   },
   
   // Correctly placed transpilePackages (outside of experimental)
