@@ -7,9 +7,27 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// Configuration
-const APP_MAIN_PAGE_PATH = './src/app/(main)/page.tsx';
-const APP_PAGE_BACKUP = './src/app/(main)/page.tsx.bak';
+// Configuration - check multiple possible locations for app/page.tsx
+const possibleAppPaths = [
+  './src/app/page.tsx',
+  './app/page.tsx'
+];
+
+// Find the actual app page path
+function findAppPagePath() {
+  for (const path of possibleAppPaths) {
+    if (fs.existsSync(path)) {
+      console.log(`Found app page at: ${path}`);
+      return path;
+    }
+  }
+  console.log('Warning: Could not find app/page.tsx in any expected location');
+  return possibleAppPaths[0]; // Default to first path
+}
+
+// Set the correct paths
+const APP_PAGE_PATH = findAppPagePath();
+const APP_PAGE_BACKUP = `${APP_PAGE_PATH}.bak`;
 const PAGES_INDEX_PATH = './pages/index.js';
 const PAGES_DIR = './pages';
 
@@ -26,36 +44,36 @@ function fileExists(filePath) {
   return fs.existsSync(filePath);
 }
 
-// Backup the app main page
-function backupAppMainPage() {
-  if (fileExists(APP_MAIN_PAGE_PATH)) {
-    console.log(`Backing up ${APP_MAIN_PAGE_PATH} to ${APP_PAGE_BACKUP}`);
-    fs.copyFileSync(APP_MAIN_PAGE_PATH, APP_PAGE_BACKUP);
+// Backup the app page
+function backupAppPage() {
+  if (fileExists(APP_PAGE_PATH)) {
+    console.log(`Backing up ${APP_PAGE_PATH} to ${APP_PAGE_BACKUP}`);
+    fs.copyFileSync(APP_PAGE_PATH, APP_PAGE_BACKUP);
   }
 }
 
-// Restore the app main page
-function restoreAppMainPage() {
+// Restore the app page
+function restoreAppPage() {
   if (fileExists(APP_PAGE_BACKUP)) {
-    console.log(`Restoring ${APP_MAIN_PAGE_PATH} from backup`);
-    fs.copyFileSync(APP_PAGE_BACKUP, APP_MAIN_PAGE_PATH);
+    console.log(`Restoring ${APP_PAGE_PATH} from backup`);
+    fs.copyFileSync(APP_PAGE_BACKUP, APP_PAGE_PATH);
     fs.unlinkSync(APP_PAGE_BACKUP);
   }
 }
 
-// Temporarily rename or move the app main page
-function renameAppMainPage() {
-  if (fileExists(APP_MAIN_PAGE_PATH)) {
-    console.log(`Temporarily renaming ${APP_MAIN_PAGE_PATH}`);
-    fs.renameSync(APP_MAIN_PAGE_PATH, `${APP_MAIN_PAGE_PATH}.temp`);
+// Temporarily rename or move the app page
+function renameAppPage() {
+  if (fileExists(APP_PAGE_PATH)) {
+    console.log(`Temporarily renaming ${APP_PAGE_PATH}`);
+    fs.renameSync(APP_PAGE_PATH, `${APP_PAGE_PATH}.temp`);
   }
 }
 
-// Restore the renamed app main page
-function restoreRenamedAppMainPage() {
-  if (fileExists(`${APP_MAIN_PAGE_PATH}.temp`)) {
-    console.log(`Restoring renamed ${APP_MAIN_PAGE_PATH}`);
-    fs.renameSync(`${APP_MAIN_PAGE_PATH}.temp`, APP_MAIN_PAGE_PATH);
+// Restore the renamed app page
+function restoreRenamedAppPage() {
+  if (fileExists(`${APP_PAGE_PATH}.temp`)) {
+    console.log(`Restoring renamed ${APP_PAGE_PATH}`);
+    fs.renameSync(`${APP_PAGE_PATH}.temp`, APP_PAGE_PATH);
   }
 }
 
@@ -87,10 +105,31 @@ function removeTemporaryPagesIndex() {
   }
 }
 
+// Check for any conflicting files in the app directory
+function checkForConflictingFiles() {
+  console.log('Checking for any conflicting files in app router...');
+  
+  // Look for any app/page.tsx that might conflict
+  if (fs.existsSync('./app/page.tsx') && fs.existsSync('./src/app/page.tsx')) {
+    console.log('Warning: Found page.tsx in both ./app and ./src/app directories');
+  }
+  
+  // Check for (main)/page.tsx
+  if (fs.existsSync('./src/app/(main)/page.tsx')) {
+    console.log('Found page in src/app/(main)/page.tsx');
+  }
+}
+
 // Run the Next.js build
 function runBuild() {
   console.log('Running Next.js build...');
   try {
+    // Additional safety: Remove any conflicting pages files first
+    if (fs.existsSync('./pages/index.js')) {
+      console.log('Removing any existing pages/index.js before build');
+      fs.unlinkSync('./pages/index.js');
+    }
+    
     // Use environment variables to disable checks that might cause issues during build
     execSync('DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_COMPILE_ONLY=true NODE_ENV=production next build', {
       stdio: 'inherit'
@@ -106,15 +145,18 @@ function runBuild() {
 async function main() {
   console.log('Starting Next.js App Router deployment workaround');
   
+  // Perform pre-flight checks
+  checkForConflictingFiles();
+  
   // Setup
   ensurePagesDirectory();
   
   try {
-    // Step 1: Back up the app main page
-    backupAppMainPage();
+    // Step 1: Back up the app page
+    backupAppPage();
     
-    // Step 2: Temporarily move the app main page out of the way
-    renameAppMainPage();
+    // Step 2: Temporarily move the app page out of the way
+    renameAppPage();
     
     // Step 3: Create a temporary pages index
     createTemporaryPagesIndex();
@@ -135,8 +177,8 @@ async function main() {
     // Cleanup - always execute these regardless of success or failure
     console.log('Cleaning up temporary files...');
     removeTemporaryPagesIndex();
-    restoreRenamedAppMainPage();
-    restoreAppMainPage();
+    restoreRenamedAppPage();
+    restoreAppPage();
   }
 }
 
