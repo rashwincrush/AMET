@@ -203,19 +203,40 @@ module.exports = nextConfig
   fs.writeFileSync(configPath, configContent);
   log('Created simple next.config.js');
   
-  // Temporarily remove problematic directories to avoid type conflicts
+  // Temporarily remove problematic directories and symlinks to avoid type conflicts
   const srcAppDir = path.join(process.cwd(), 'src', 'app');
   const appDir = path.join(process.cwd(), 'app');
+  const srcDir = path.join(process.cwd(), 'src');
+  const componentsDir = path.join(process.cwd(), 'components');
+  const libDir = path.join(process.cwd(), 'lib');
+  const hooksDir = path.join(process.cwd(), 'hooks');
   
-  if (fs.existsSync(srcAppDir)) {
-    fs.renameSync(srcAppDir, `${srcAppDir}.bak`);
-    log('Temporarily moved src/app directory');
-  }
+  // Function to safely move a directory
+  const moveDirectory = (dir) => {
+    if (fs.existsSync(dir)) {
+      try {
+        // Check if it's a symlink first
+        const stats = fs.lstatSync(dir);
+        if (stats.isSymbolicLink()) {
+          fs.unlinkSync(dir);
+          log(`Removed symlink: ${dir}`);
+        } else {
+          fs.renameSync(dir, `${dir}.bak`);
+          log(`Temporarily moved directory: ${dir}`);
+        }
+      } catch (error) {
+        log(`Warning: Could not move ${dir}: ${error.message}`);
+      }
+    }
+  };
   
-  if (fs.existsSync(appDir)) {
-    fs.renameSync(appDir, `${appDir}.bak`);
-    log('Temporarily moved app directory');
-  }
+  // Move all potentially problematic directories
+  moveDirectory(srcAppDir);
+  moveDirectory(appDir);
+  moveDirectory(srcDir);
+  moveDirectory(componentsDir);
+  moveDirectory(libDir);
+  moveDirectory(hooksDir);
   
   return {
     srcAppDir: fs.existsSync(`${srcAppDir}.bak`),
@@ -229,27 +250,38 @@ module.exports = nextConfig
 function restoreOriginalProject(backups) {
   log('Restoring original project files...');
   
-  // Restore src/app directory
-  const srcAppDir = path.join(process.cwd(), 'src', 'app');
-  if (backups.srcAppDir) {
-    if (fs.existsSync(srcAppDir)) {
-      cleanDirectory(srcAppDir);
-      fs.rmdirSync(srcAppDir);
+  // Helper function to restore a directory
+  const restoreDirectory = (dir) => {
+    const bakPath = `${dir}.bak`;
+    if (fs.existsSync(bakPath)) {
+      if (fs.existsSync(dir)) {
+        try {
+          cleanDirectory(dir);
+          fs.rmdirSync(dir);
+        } catch (error) {
+          log(`Warning: Could not clean ${dir}: ${error.message}`);
+        }
+      }
+      fs.renameSync(bakPath, dir);
+      log(`Restored directory: ${dir}`);
     }
-    fs.renameSync(`${srcAppDir}.bak`, srcAppDir);
-    log('Restored src/app directory');
-  }
+  };
   
-  // Restore app directory
+  // Restore all directories in reverse order
+  const srcAppDir = path.join(process.cwd(), 'src', 'app');
   const appDir = path.join(process.cwd(), 'app');
-  if (backups.appDir) {
-    if (fs.existsSync(appDir)) {
-      cleanDirectory(appDir);
-      fs.rmdirSync(appDir);
-    }
-    fs.renameSync(`${appDir}.bak`, appDir);
-    log('Restored app directory');
-  }
+  const srcDir = path.join(process.cwd(), 'src');
+  const componentsDir = path.join(process.cwd(), 'components');
+  const libDir = path.join(process.cwd(), 'lib');
+  const hooksDir = path.join(process.cwd(), 'hooks');
+  
+  // Restore in reverse order to handle nested directories properly
+  restoreDirectory(srcAppDir);
+  restoreDirectory(appDir);
+  restoreDirectory(hooksDir);
+  restoreDirectory(libDir);
+  restoreDirectory(componentsDir);
+  restoreDirectory(srcDir);
   
   // Restore package.json
   const packageJsonPath = path.join(process.cwd(), 'package.json');
