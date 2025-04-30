@@ -438,25 +438,128 @@ function main() {
     log('Lib directory exists? ' + fs.existsSync(path.join(process.cwd(), 'lib')));
     log('src/lib directory exists? ' + fs.existsSync(path.join(process.cwd(), 'src/lib')));
     
+    // Additional detailed filesystem debugging
+    log('Full directory listing at project root:');
+    try {
+      const output = execSync('find . -type d -maxdepth 2', { encoding: 'utf8' });
+      log(output);
+    } catch (e) {
+      log('Error listing directories: ' + e.message);
+    }
+    
+    log('Checking symlinks:');
+    try {
+      const output = execSync('find . -type l -maxdepth 1', { encoding: 'utf8' });
+      log(output || 'No symlinks found at root level');
+    } catch (e) {
+      log('Error checking symlinks: ' + e.message);
+    }
+    
+    log('Verifying lib directory contents:');
+    try {
+      if (fs.existsSync(path.join(process.cwd(), 'lib'))) {
+        const output = execSync('ls -la ./lib', { encoding: 'utf8' });
+        log(output);
+      } else {
+        log('Lib directory does not exist yet');
+      }
+    } catch (e) {
+      log('Error accessing lib directory: ' + e.message);
+    }
+    
     // Ensure required directories exist
     ensureDirectoryExists(path.join(process.cwd(), 'lib'));
     ensureDirectoryExists(path.join(process.cwd(), 'components'));
     ensureDirectoryExists(path.join(process.cwd(), 'hooks'));
     
-    // Create symlinks if source directories exist
+    // Remove existing symlinks that might be causing problems
+    try {
+      const libPath = path.join(process.cwd(), 'lib');
+      const compPath = path.join(process.cwd(), 'components');
+      const hooksPath = path.join(process.cwd(), 'hooks');
+      
+      if (fs.existsSync(libPath) && fs.lstatSync(libPath).isSymbolicLink()) {
+        fs.unlinkSync(libPath);
+        log('Removed existing lib symlink');
+      }
+      
+      if (fs.existsSync(compPath) && fs.lstatSync(compPath).isSymbolicLink()) {
+        fs.unlinkSync(compPath);
+        log('Removed existing components symlink');
+      }
+      
+      if (fs.existsSync(hooksPath) && fs.lstatSync(hooksPath).isSymbolicLink()) {
+        fs.unlinkSync(hooksPath);
+        log('Removed existing hooks symlink');
+      }
+    } catch (e) {
+      log(`Warning: Error removing symlinks: ${e.message}`);
+    }
+    
+    log('Creating physical directories instead of symlinks...');
+    
+    // Copy files from src/lib to lib if it exists
     if (fs.existsSync(path.join(process.cwd(), 'src/lib'))) {
       try {
-        fs.symlinkSync(
+        // Create recursive copy function
+        const copyRecursive = (src, dest) => {
+          const exists = fs.existsSync(src);
+          const stats = exists && fs.statSync(src);
+          const isDirectory = exists && stats.isDirectory();
+          
+          if (isDirectory) {
+            if (!fs.existsSync(dest)) {
+              fs.mkdirSync(dest, { recursive: true });
+            }
+            fs.readdirSync(src).forEach(childItemName => {
+              copyRecursive(
+                path.join(src, childItemName),
+                path.join(dest, childItemName)
+              );
+            });
+          } else {
+            fs.copyFileSync(src, dest);
+          }
+        };
+        
+        // Copy directories
+        copyRecursive(
           path.join(process.cwd(), 'src/lib'),
-          path.join(process.cwd(), 'lib'),
-          'dir'
+          path.join(process.cwd(), 'lib')
         );
-        log('Created symlink for lib directory');
-      } catch (error) {
-        if (error.code !== 'EEXIST') {
-          log(`Warning: Could not create lib symlink: ${error.message}`);
+        log('Copied src/lib files to lib directory');
+        
+        if (fs.existsSync(path.join(process.cwd(), 'src/components'))) {
+          copyRecursive(
+            path.join(process.cwd(), 'src/components'),
+            path.join(process.cwd(), 'components')
+          );
+          log('Copied src/components files to components directory');
         }
+        
+        if (fs.existsSync(path.join(process.cwd(), 'src/hooks'))) {
+          copyRecursive(
+            path.join(process.cwd(), 'src/hooks'),
+            path.join(process.cwd(), 'hooks')
+          );
+          log('Copied src/hooks files to hooks directory');
+        }
+        
+        // List directories to confirm
+        if (fs.existsSync(path.join(process.cwd(), 'lib'))) {
+          log('Contents of lib directory: ' + fs.readdirSync(path.join(process.cwd(), 'lib')).join(', '));
+        }
+      } catch (e) {
+        log(`Error creating physical directories: ${e}`);
       }
+    } else {
+      // Create a placeholder file if src/lib doesn't exist
+      ensureDirectoryExists(path.join(process.cwd(), 'lib'));
+      fs.writeFileSync(
+        path.join(process.cwd(), 'lib/index.js'),
+        '// Placeholder file to ensure directory exists\nmodule.exports = {};\n'
+      );
+      log('Created placeholder lib/index.js file');
     }
     
     // Create a JS-only project for build
