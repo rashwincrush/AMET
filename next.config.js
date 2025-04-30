@@ -2,7 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  output: 'standalone', // Enable standalone output for Docker
   poweredByHeader: false, // Remove X-Powered-By header
   images: {
     domains: ['localhost', 'example.com', 'avatars.githubusercontent.com'],
@@ -24,8 +23,13 @@ const nextConfig = {
   // Configure exporting options for static optimization
   trailingSlash: false,
   
-  // Output as static site to avoid SSR issues
-  output: process.env.SKIP_API_ROUTES ? 'export' : 'standalone',
+  // Always use standalone mode for Vercel deployment to support dynamic routes
+  output: 'standalone',
+  
+  // Enable experimental features to support Supabase SSR
+  experimental: {
+    serverComponentsExternalPackages: ['@supabase/ssr'],
+  },
 };
 
 module.exports = nextConfig;
