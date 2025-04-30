@@ -15,7 +15,8 @@
     "USE_MOCK_DATA": "true",
     "NEXT_DISABLE_ESLINT": "1",
     "DISABLE_ESLINT_PLUGIN": "true",
-    "SKIP_API_ROUTES": "true"
+    "SKIP_API_ROUTES": "true",
+    "NEXT_DISABLE_SSGFALLBACK": "true"
   },
   "build": {
     "env": {
