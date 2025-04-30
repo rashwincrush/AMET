@@ -23,10 +23,9 @@ const nextConfig = {
   // Configure exporting options for static optimization
   trailingSlash: false,
   
-  // Always use standalone mode for Vercel deployment to support dynamic routes
+  // Standard Next.js configuration for Vercel deployment
   output: 'standalone',
   
-  // Enable external packages for server components
   experimental: {
     serverComponentsExternalPackages: ['@supabase/ssr']
   },
