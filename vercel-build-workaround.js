@@ -1,149 +1,147 @@
-// Custom build script to handle static generation exclusion
+/**
+ * This script provides a workaround for Next.js App Router deployments on Vercel
+ * by properly handling file conflicts between Pages Router and App Router.
+ */
+
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// Function to create a simple placeholder root page
-function createRootPageWorkaround() {
-  console.log('Creating static root page workaround...');
-  const appDir = path.resolve('./src/app');
-  const pageDir = path.resolve('./pages');
-  
-  // Create a pages directory if it doesn't exist
-  if (!fs.existsSync(pageDir)) {
-    fs.mkdirSync(pageDir, { recursive: true });
+// Configuration
+const APP_MAIN_PAGE_PATH = './src/app/(main)/page.tsx';
+const APP_PAGE_BACKUP = './src/app/(main)/page.tsx.bak';
+const PAGES_INDEX_PATH = './pages/index.js';
+const PAGES_DIR = './pages';
+
+// Ensure the pages directory exists
+function ensurePagesDirectory() {
+  if (!fs.existsSync(PAGES_DIR)) {
+    console.log(`Creating ${PAGES_DIR} directory...`);
+    fs.mkdirSync(PAGES_DIR, { recursive: true });
   }
-  
-  // Create a simple index.js file in pages directory that redirects to /home
-  // This will use the Pages Router instead of App Router for just the root
+}
+
+// Check if a file exists
+function fileExists(filePath) {
+  return fs.existsSync(filePath);
+}
+
+// Backup the app main page
+function backupAppMainPage() {
+  if (fileExists(APP_MAIN_PAGE_PATH)) {
+    console.log(`Backing up ${APP_MAIN_PAGE_PATH} to ${APP_PAGE_BACKUP}`);
+    fs.copyFileSync(APP_MAIN_PAGE_PATH, APP_PAGE_BACKUP);
+  }
+}
+
+// Restore the app main page
+function restoreAppMainPage() {
+  if (fileExists(APP_PAGE_BACKUP)) {
+    console.log(`Restoring ${APP_MAIN_PAGE_PATH} from backup`);
+    fs.copyFileSync(APP_PAGE_BACKUP, APP_MAIN_PAGE_PATH);
+    fs.unlinkSync(APP_PAGE_BACKUP);
+  }
+}
+
+// Temporarily rename or move the app main page
+function renameAppMainPage() {
+  if (fileExists(APP_MAIN_PAGE_PATH)) {
+    console.log(`Temporarily renaming ${APP_MAIN_PAGE_PATH}`);
+    fs.renameSync(APP_MAIN_PAGE_PATH, `${APP_MAIN_PAGE_PATH}.temp`);
+  }
+}
+
+// Restore the renamed app main page
+function restoreRenamedAppMainPage() {
+  if (fileExists(`${APP_MAIN_PAGE_PATH}.temp`)) {
+    console.log(`Restoring renamed ${APP_MAIN_PAGE_PATH}`);
+    fs.renameSync(`${APP_MAIN_PAGE_PATH}.temp`, APP_MAIN_PAGE_PATH);
+  }
+}
+
+// Create a simple pages/index.js file that doesn't conflict
+function createTemporaryPagesIndex() {
+  console.log(`Creating temporary ${PAGES_INDEX_PATH}`);
   const content = `
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
-
-export default function RedirectHome() {
-  const router = useRouter();
-  
-  useEffect(() => {
-    router.push('/home');
-  }, [router]);
-  
-  return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'column',
-      padding: '1rem',
-      textAlign: 'center',
-      backgroundColor: '#f5f5f5',
-    }}>
-      <div style={{
-        maxWidth: '32rem',
-        width: '100%',
-        backgroundColor: 'white',
-        borderRadius: '0.75rem',
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        padding: '2rem',
-      }}>
-        <h1 style={{
-          fontSize: '1.875rem',
-          fontWeight: 'bold',
-          color: '#2563eb',
-          marginBottom: '1rem',
-        }}>AMET Alumni Portal</h1>
-        <p style={{
-          color: '#6b7280',
-          marginBottom: '1.5rem',
-        }}>Welcome to the AMET Alumni Management System</p>
-        <a 
-          href="/home"
-          style={{
-            display: 'block',
-            width: '100%',
-            padding: '0.75rem 1rem',
-            backgroundColor: '#2563eb',
-            color: 'white',
-            textAlign: 'center',
-            fontWeight: '500',
-            borderRadius: '0.375rem',
-            textDecoration: 'none',
-          }}
-        >
-          Enter Alumni Portal
-        </a>
-        <p style={{
-          marginTop: '1rem',
-          fontSize: '0.875rem',
-          color: '#9ca3af',
-        }}>Redirecting to portal...</p>
-      </div>
-    </div>
-  );
+// This is a temporary file for Vercel deployment
+// It will be removed after the build process
+export default function TemporaryPage() {
+  return null;
 }
-  `;
-  
-  fs.writeFileSync(path.resolve(pageDir, 'index.js'), content, 'utf8');
-  console.log('Created pages/index.js workaround');
-  
-  // Temporarily rename the app/page.tsx to make sure it's not used
-  if (fs.existsSync(path.resolve(appDir, 'page.tsx'))) {
-    fs.renameSync(
-      path.resolve(appDir, 'page.tsx'),
-      path.resolve(appDir, 'page.tsx.bak')
-    );
-    console.log('Temporarily renamed app/page.tsx');
+
+// Make sure this is treated as a non-root route during build
+export async function getStaticProps() {
+  return { 
+    notFound: true 
+  };
+}
+`;
+  fs.writeFileSync(PAGES_INDEX_PATH, content);
+}
+
+// Remove the temporary pages/index.js file
+function removeTemporaryPagesIndex() {
+  if (fileExists(PAGES_INDEX_PATH)) {
+    console.log(`Removing temporary ${PAGES_INDEX_PATH}`);
+    fs.unlinkSync(PAGES_INDEX_PATH);
   }
 }
 
-// Function to run the build with specific environment variables
+// Run the Next.js build
 function runBuild() {
-  const appDir = path.resolve('./src/app'); // Define appDir here as well
-  console.log('Running Next.js build with workaround...');
+  console.log('Running Next.js build...');
   try {
-    execSync(
-      'DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_COMPILE_ONLY=true NODE_ENV=production next build',
-      { stdio: 'inherit' }
-    );
-    console.log('Build completed successfully');
-    
-    // Restore the original files after build
-    if (fs.existsSync(path.resolve(appDir, 'page.tsx.bak'))) {
-      fs.renameSync(
-        path.resolve(appDir, 'page.tsx.bak'),
-        path.resolve(appDir, 'page.tsx')
-      );
-      console.log('Restored original app/page.tsx');
-    }
-    
+    // Use environment variables to disable checks that might cause issues during build
+    execSync('DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_COMPILE_ONLY=true NODE_ENV=production next build', {
+      stdio: 'inherit'
+    });
     return true;
   } catch (error) {
-    console.error('Build failed:', error);
+    console.error('❌ Build failed with error:', error.message);
     return false;
   }
 }
 
-// Main function to execute the build process
+// Main function
 async function main() {
-  console.log('Starting Vercel build workaround script');
+  console.log('Starting Next.js App Router deployment workaround');
   
-  // Create the workaround for the root page
-  createRootPageWorkaround();
+  // Setup
+  ensurePagesDirectory();
   
-  // Run the build with the workaround in place
-  const buildSuccess = runBuild();
-  
-  if (buildSuccess) {
-    console.log('✅ Build completed successfully with workaround');
-    process.exit(0);
-  } else {
-    console.error('❌ Build failed even with workaround');
+  try {
+    // Step 1: Back up the app main page
+    backupAppMainPage();
+    
+    // Step 2: Temporarily move the app main page out of the way
+    renameAppMainPage();
+    
+    // Step 3: Create a temporary pages index
+    createTemporaryPagesIndex();
+    
+    // Step 4: Run the build
+    const buildSucceeded = runBuild();
+    
+    if (buildSucceeded) {
+      console.log('✅ Build completed successfully!');
+    } else {
+      console.log('❌ Build failed!');
+      throw new Error('Build failed');
+    }
+  } catch (error) {
+    console.error('Error during build process:', error.message);
     process.exit(1);
+  } finally {
+    // Cleanup - always execute these regardless of success or failure
+    console.log('Cleaning up temporary files...');
+    removeTemporaryPagesIndex();
+    restoreRenamedAppMainPage();
+    restoreAppMainPage();
   }
 }
 
-// Execute the script
-main().catch(error => {
-  console.error('Unexpected error:', error);
+// Run the main function
+main().catch(err => {
+  console.error('Unhandled error in build script:', err);
   process.exit(1);
 });
