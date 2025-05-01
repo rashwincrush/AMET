@@ -11,6 +11,7 @@ import { FaHome, FaUsers, FaCalendar, FaBriefcase, FaHandshake, FaInfoCircle, Fa
          FaBuilding, FaShieldAlt, FaBell, FaFileAlt, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 
 export default function HomePage() {
+
   const upcomingEvents = [
     {
       id: 1,

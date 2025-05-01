@@ -12,17 +12,17 @@ export const metadata: Metadata = {
   description: 'A comprehensive platform for managing AMET alumni networks, events, job opportunities, and mentorship programs.',
   icons: {
     icon: [
-      { url: '/favicon.ico' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon/favicon.ico' },
+      { url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
     ],
     apple: [
-      { url: '/apple-touch-icon.png' },
+      { url: '/favicon/apple-touch-icon.png' },
     ],
     other: [
       {
         rel: 'manifest',
-        url: '/site.webmanifest',
+        url: '/favicon/site.webmanifest',
       },
     ],
   },

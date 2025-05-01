@@ -10,7 +10,6 @@ export default function Header() {
   const { user, signOut } = useAuth();
   const userRole = (useAuth() as any).userRole || null;
   
-  console.log('DEBUG: Header component loaded - ' + new Date().toISOString());
 
   return (
     <header className="bg-blue-600 shadow-sm">
@@ -19,13 +18,13 @@ export default function Header() {
           <div className="flex">
             <Link href="/home" className="flex-shrink-0 flex items-center">
               <img 
-                src="/images/logo.jpg" 
+                src="/AMETlogo.jpg?v=2" 
                 alt="AMET Logo" 
                 width="120" 
                 height="40" 
-                className="h-10 w-auto bg-white p-1 rounded" 
+                className="h-10 w-auto" 
+                style={{ objectFit: 'contain' }}
               />
-              <span className="ml-2 text-white font-bold text-lg">UPDATED HEADER</span>
             </Link>
             <nav className="hidden md:ml-6 md:flex md:space-x-4">
               <Link href="/directory" className="px-3 py-2 rounded-md text-sm font-medium text-white hover:bg-blue-700">
