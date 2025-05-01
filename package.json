@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "clean": "rm -rf .next node_modules && npm cache clean --force",
-    "vercel-build": "next build"
+    "vercel-build": "node fix-vercel-build.js && next build",
+    "postbuild": "node fix-vercel-build.js"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.2.1",
