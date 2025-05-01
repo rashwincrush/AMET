@@ -11,6 +11,7 @@ import EnhancedPageHeader from '@/components/ui/EnhancedPageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { mockJobs } from '@/mock';
 import { FaBriefcase, FaBuilding, FaMapMarkerAlt, FaRegClock, FaFilter, FaChevronLeft, FaChevronRight, FaBell, FaPlus, FaSearch, FaGraduationCap } from 'react-icons/fa';
 // Import framer-motion with a try-catch to handle build issues
 // Create a fallback implementation for motion components
@@ -79,25 +80,35 @@ export default function JobsPage() {
   const [activeView, setActiveView] = useState('all');
   const itemsPerPage = 5;
   
+  // Use mock jobs data
+
   useEffect(() => {
     async function loadJobs() {
       try {
         setLoading(true);
         setError(null);
         
-        // Get all active jobs
-        const { data, error } = await supabase
-          .from('jobs')
-          .select('*')
-          .eq('is_active', true)
-          .gte('expires_at', new Date().toISOString())
-          .order('created_at', { ascending: false });
-          
-        if (error) throw error;
+        // Use mock data instead of fetching from Supabase
+        // Convert mock data format to match the expected Job type
+        const formattedJobs = mockJobs.map(job => ({
+          id: job.id,
+          title: job.title,
+          company: job.company,
+          location: job.location,
+          description: job.description,
+          requirements: job.requirements.join('\n'),
+          salary_range: job.salary,
+          job_type: job.employmentType.toLowerCase() as any,
+          experience_level: job.experienceLevel.toLowerCase().replace('-level', '') as any,
+          application_url: job.applicationLink,
+          contact_email: job.contactEmail,
+          posted_by: job.postedBy,
+          created_at: job.postedDate,
+          expires_at: job.applicationDeadline,
+          is_active: true
+        }));
         
-        if (data) {
-          setJobs(data as Job[]);
-        }
+        setJobs(formattedJobs);
       } catch (err: any) {
         console.error('Error loading jobs:', err);
         setError(err.message || 'Failed to load jobs');

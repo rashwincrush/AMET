@@ -8,6 +8,7 @@ import { Calendar, Filter, Grid3x3, List, MapPin, Clock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import PublicPageWrapper from '@/components/auth/PublicPageWrapper';
+import { mockEvents } from '@/mock';
 
 type Event = {
   id: string;
@@ -53,18 +54,24 @@ export default function EventsPage() {
         setLoading(true);
         setError(null);
 
-        const { data, error } = await supabase
-          .from('events')
-          .select('*')
-          .eq('is_published', true)
-          .gte('end_date', new Date().toISOString())
-          .order('start_date', { ascending: true });
+        // Convert mock events to match the expected Event type
+        const formattedEvents = mockEvents.map(event => ({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          location: event.location,
+          is_virtual: event.isVirtual,
+          virtual_meeting_link: event.isVirtual ? event.virtualLink : undefined,
+          start_date: event.date + 'T' + event.time.split(' - ')[0] + ':00Z',
+          end_date: event.date + 'T' + event.time.split(' - ')[1] + ':00Z',
+          max_attendees: event.attendees,
+          image_url: event.image,
+          creator_id: event.organizer,
+          created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week ago
+          category: event.category
+        }));
 
-        if (error) {
-          throw error;
-        }
-
-        setEvents(data || []);
+        setEvents(formattedEvents);
       } catch (err: any) {
         console.error('Error loading events:', err);
         setError('Failed to load events. Please try again.');

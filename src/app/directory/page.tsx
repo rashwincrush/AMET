@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { profileService } from '@/lib/services/profileService';
 import { Profile } from '@/types/database';
 import ProfileCard from '@/components/directory/ProfileCard';
+import { mockAlumni } from '@/mock';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -80,11 +81,29 @@ export default function DirectoryPage() {
   async function fetchProfiles() {
     try {
       setLoading(true);
-      const data = await profileService.getAllProfiles();
-      setProfiles(data);
-      setFilteredProfiles(data);
-      setResultsCount(data.length);
-      setTotalPages(Math.ceil(data.length / PROFILES_PER_PAGE));
+      
+      // Convert mock alumni data to match the Profile type
+      const formattedProfiles: Profile[] = mockAlumni.map(alumni => ({
+        id: alumni.id,
+        first_name: alumni.firstName,
+        last_name: alumni.lastName,
+        email: alumni.email,
+        avatar_url: alumni.avatarUrl,
+        graduation_year: parseInt(alumni.graduationYear),
+        major: alumni.major,
+        industry: alumni.company,
+        location: alumni.location,
+        bio: alumni.bio,
+        phone_number: alumni.phoneNumber,
+        is_verified: alumni.isVerified,
+        created_at: alumni.joinedDate,
+        updated_at: alumni.joinedDate
+      }));
+      
+      setProfiles(formattedProfiles);
+      setFilteredProfiles(formattedProfiles);
+      setResultsCount(formattedProfiles.length);
+      setTotalPages(Math.ceil(formattedProfiles.length / PROFILES_PER_PAGE));
     } catch (err: any) {
       console.error('Error fetching profiles:', err);
       setError(err.message || 'Failed to load profiles');

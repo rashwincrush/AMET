@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { mockConversations, currentUserId } from '@/mock';
 
 type Conversation = {
   id: string;
@@ -33,68 +34,28 @@ export default function MessagingPage() {
         setLoading(true);
         setError(null);
 
-        if (!user) return;
+        // Use mock conversations data
+        const formattedConversations: Conversation[] = mockConversations.map(conv => {
+          // Find the other participant (not the current user)
+          const otherParticipant = conv.participants.find(p => p.id !== currentUserId);
+          
+          if (!otherParticipant) {
+            throw new Error('Conversation participant not found');
+          }
+          
+          return {
+            id: conv.id,
+            participant1_id: currentUserId,
+            participant2_id: otherParticipant.id,
+            last_message_time: conv.lastMessage.timestamp,
+            participant_name: otherParticipant.name,
+            participant_avatar: otherParticipant.avatar || '',
+            unread_count: conv.unreadCount,
+            last_message_preview: conv.lastMessage.content.substring(0, 50)
+          };
+        });
 
-        // Get all conversations the user is part of
-        const { data: conversationsData, error: conversationsError } = await supabase
-          .from('conversations')
-          .select('*')
-          .or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`)
-          .order('last_message_time', { ascending: false });
-
-        if (conversationsError) throw conversationsError;
-
-        // Get participant details for each conversation
-        const enhancedConversations = await Promise.all(
-          conversationsData?.map(async (conversation) => {
-            // Determine the other participant
-            const otherParticipantId = 
-              conversation.participant1_id === user.id 
-                ? conversation.participant2_id 
-                : conversation.participant1_id;
-
-            // Get participant profile
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('full_name, avatar_url')
-              .eq('id', otherParticipantId)
-              .single();
-
-            if (profileError) throw profileError;
-
-            // Get unread message count
-            const { count: unreadCount, error: unreadError } = await supabase
-              .from('messages')
-              .select('id', { count: 'exact' })
-              .eq('recipient_id', user.id)
-              .eq('is_read', false)
-              .eq('sender_id', otherParticipantId);
-
-            if (unreadError) throw unreadError;
-
-            // Get last message preview
-            const { data: lastMessage, error: lastMessageError } = await supabase
-              .from('messages')
-              .select('content')
-              .eq('id', conversation.last_message_id)
-              .single();
-
-            if (lastMessageError && lastMessageError.code !== 'PGRST116') {
-              // PGRST116 is the error code for no rows returned
-              throw lastMessageError;
-            }
-
-            return {
-              ...conversation,
-              participant_name: profileData?.full_name || 'Unknown User',
-              participant_avatar: profileData?.avatar_url || '',
-              unread_count: unreadCount || 0,
-              last_message_preview: lastMessage?.content?.substring(0, 50) || 'No messages yet'
-            };
-          }) || []
-        );
-
-        setConversations(enhancedConversations);
+        setConversations(formattedConversations);
       } catch (err: any) {
         console.error('Error loading conversations:', err);
         setError('Failed to load conversations. Please try again.');
