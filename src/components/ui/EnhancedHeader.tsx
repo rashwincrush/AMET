@@ -236,7 +236,7 @@ export default function EnhancedHeader() {
               <div className="hidden md:flex items-center space-x-2">
                 <Link href="/auth/login">
                   <Button 
-                    className="text-sm bg-white text-blue-800 hover:bg-blue-50 border border-blue-300"
+                    className="text-sm bg-White text-blue hover:bg-blue-50 border border-blue-300"
                   >
                     <FaSignInAlt className="mr-1.5 h-3.5 w-3.5" />
                     Sign In
@@ -244,7 +244,7 @@ export default function EnhancedHeader() {
                 </Link>
                 <Link href="/auth/signup">
                   <Button 
-                    className="text-sm bg-white text-blue-800 hover:bg-blue-50 border border-blue-300"
+                    className="text-sm bg-White text-blue hover:bg-blue-50 border border-blue-300"
                   >
                     <FaUserPlus className="mr-1.5 h-3.5 w-3.5" />
                     Join Now

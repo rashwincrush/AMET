@@ -1,11 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
+import { mockSupabaseClient } from './mockSupabase';
 
 // Debug logs to check environment variables
 console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set');
 console.log('Supabase Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set');
 
+// Check if we should use mock data
+const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
+
 // Check for environment variables and provide fallback
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+if ((!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) && !useMockData) {
   console.warn('Creating mock Supabase client as fallback - missing environment variables');
 }
 
@@ -13,33 +17,40 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Initialize Supabase client with simplified configuration
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
-  },
-  global: {
-    headers: {
-      'apikey': supabaseAnonKey,
-    },
-  },
-});
+// Use mock Supabase client if specified or if environment variables are missing
+const shouldUseMock = useMockData || (!supabaseUrl || !supabaseAnonKey);
+
+// Initialize Supabase client with simplified configuration or use mock
+export const supabase = shouldUseMock 
+  ? mockSupabaseClient 
+  : createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      },
+      global: {
+        headers: {
+          'apikey': supabaseAnonKey,
+        },
+      },
+    });
 
 // Initialize admin Supabase client for server-side operations
-export const supabaseServer = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
-  },
-  global: {
-    headers: {
-      'apikey': supabaseServiceRoleKey || supabaseAnonKey,
-    },
-  },
-});
+export const supabaseServer = shouldUseMock
+  ? mockSupabaseClient
+  : createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      },
+      global: {
+        headers: {
+          'apikey': supabaseServiceRoleKey || supabaseAnonKey,
+        },
+      },
+    });
 
 // Log the Supabase URL to verify it's correct (only in development)
 if (process.env.NODE_ENV === 'development') {
@@ -49,11 +60,14 @@ if (process.env.NODE_ENV === 'development') {
 // Helper function to check if a user exists
 export async function checkUserExists(email: string) {
   try {
-    const { data, error } = await supabase
+    // Use type assertion to handle the PostgrestResponse type
+    const response = await supabase
       .from('profiles')
       .select('id, email')
       .eq('email', email)
       .single();
+      
+    const { data, error } = response as { data: any, error: any };
 
     if (error) throw error;
     return !!data;
@@ -82,10 +96,13 @@ export async function signInWithEmail(email: string, password: string) {
 // Function to fetch user roles
 export async function fetchUserRoles(userId: string) {
   try {
-    const { data, error } = await supabase
+    // Use type assertion to handle the PostgrestResponse type
+    const response = await supabase
       .from('user_roles')
       .select('role_id, roles(name, permissions)')
       .eq('user_id', userId);
+      
+    const { data, error } = response as { data: any, error: any };
 
     if (error) throw error;
     return data || [];

@@ -44,47 +44,23 @@ export default function Login() {
       
       let data, error;
       
-      // Try different authentication methods to ensure compatibility
+      // Use the signInWithPassword method which is available in the latest Supabase JS client
       try {
-        // First try the newer method (signInWithPassword)
-        if (typeof supabase.auth.signInWithPassword === 'function') {
-          console.log('Using signInWithPassword method');
-          ({ data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-          }));
-        }
-        // Fall back to the older method (signIn)
-        else if (typeof supabase.auth.signIn === 'function') {
-          console.log('Using signIn method');
-          ({ data, error } = await supabase.auth.signIn({
-            email,
-            password
-          }));
-        } 
-        else {
-          throw new Error('No compatible authentication method available');
-        }
+        console.log('Using signInWithPassword method');
+        ({ data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        }));
       } catch (authError) {
         console.error('Authentication method error:', authError);
-        // Last resort: try direct method invocation as a workaround
+        // Fallback to any type casting for compatibility with mock implementation
         try {
           const anyClient = supabase.auth as any;
-          if (anyClient.signIn) {
-            console.log('Using any cast signIn method');
-            ({ data, error } = await anyClient.signIn({
-              email,
-              password
-            }));
-          } else if (anyClient.signInWithPassword) {
-            console.log('Using any cast signInWithPassword method');
-            ({ data, error } = await anyClient.signInWithPassword({
-              email,
-              password
-            }));
-          } else {
-            throw new Error('No authentication methods found');
-          }
+          console.log('Using any cast signInWithPassword method');
+          ({ data, error } = await anyClient.signInWithPassword({
+            email,
+            password
+          }));
         } catch (finalError) {
           console.error('Final authentication attempt failed:', finalError);
           throw finalError;

@@ -137,10 +137,13 @@ export default function SignUpPage() {
           }
           
           // Update the profiles table with all user information
-          const { error: profileError } = await supabase
+          // Use type assertion to handle the PostgrestResponse type
+          const response = await supabase
             .from('profiles')
             .update(profileUpdateData)
             .eq('id', data.user.id);
+            
+          const { error: profileError } = response as { data: any, error: any };
             
           if (profileError) {
             console.error('Error updating user profile:', profileError);
@@ -178,7 +181,9 @@ export default function SignUpPage() {
       setSuccess(true);
       
       // If email confirmation is required
-      if (data?.user?.identities?.length === 0) {
+      // Use type assertion to handle the case where identities might not exist
+      const user = data?.user as any;
+      if (user && user.identities && user.identities.length === 0) {
         // Show success message but don't redirect
       } else {
         // Redirect to profile completion or appropriate mentorship page
@@ -192,7 +197,7 @@ export default function SignUpPage() {
           } else {
             router.push('/profile/complete');
           }
-        }, 2000);
+        }, 1500);
       }
     } catch (err: any) {
       console.error('Signup error:', err);
