@@ -70,7 +70,7 @@ export default function EnhancedHeader() {
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <div className="h-10 mr-2">
+              <div className="h-12 mr-2 bg-white p-1 rounded shadow-sm border border-gray-100 flex items-center justify-center">
                 <img 
                   src="/images/amet-logo.jpg" 
                   alt="AMET Logo" 
