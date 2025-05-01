@@ -323,7 +323,7 @@ function FeaturedResourceCard({ title, icon, description, buttonText, buttonLink
     blue: "bg-blue-600 hover:bg-blue-700",
     green: "bg-green-600 hover:bg-green-700",
     purple: "bg-purple-600 hover:bg-purple-700",
-    orange: "bg-orange-600 hover:bg-orange-700",
+    orange: "bg-white text-blue-800 hover:bg-blue-50",
   };
 
   return (
@@ -334,7 +334,7 @@ function FeaturedResourceCard({ title, icon, description, buttonText, buttonLink
       <h3 className="text-xl font-semibold mb-2 text-gray-800 text-center">{title}</h3>
       <p className="text-gray-600 text-center mb-4">{description}</p>
       <Link href={buttonLink}>
-        <Button className={`w-full ${buttonColors[color]} text-white`}>
+        <Button className={`w-full ${buttonColors[color]} ${color !== 'orange' ? 'text-white' : ''}`}>
           {buttonText}
         </Button>
       </Link>
