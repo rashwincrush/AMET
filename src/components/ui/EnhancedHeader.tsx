@@ -70,8 +70,12 @@ export default function EnhancedHeader() {
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <div className={`h-10 w-10 rounded-full ${scrolled ? 'bg-blue-600' : 'bg-white'} flex items-center justify-center ${scrolled ? 'text-white' : 'text-blue-600'} font-bold mr-2 transition-colors duration-300`}>
-                <FaShip className={`h-5 w-5 ${scrolled ? 'text-white' : 'text-blue-600'}`} />
+              <div className="h-10 w-10 overflow-hidden rounded-full mr-2">
+                <img 
+                  src="/images/amet-logo.jpg" 
+                  alt="AMET Logo" 
+                  className="h-full w-full object-cover"
+                />
               </div>
               <span className={`text-lg font-bold ${scrolled ? 'text-blue-600' : 'text-white'} hidden sm:block transition-colors duration-300`}>
                 AMET Alumni
