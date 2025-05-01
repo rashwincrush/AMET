@@ -42,11 +42,54 @@ export default function Login() {
       setLoading(true);
       console.log('Attempting to sign in with:', email);
       
-      // Call Supabase directly
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      let data, error;
+      
+      // Try different authentication methods to ensure compatibility
+      try {
+        // First try the newer method (signInWithPassword)
+        if (typeof supabase.auth.signInWithPassword === 'function') {
+          console.log('Using signInWithPassword method');
+          ({ data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          }));
+        }
+        // Fall back to the older method (signIn)
+        else if (typeof supabase.auth.signIn === 'function') {
+          console.log('Using signIn method');
+          ({ data, error } = await supabase.auth.signIn({
+            email,
+            password
+          }));
+        } 
+        else {
+          throw new Error('No compatible authentication method available');
+        }
+      } catch (authError) {
+        console.error('Authentication method error:', authError);
+        // Last resort: try direct method invocation as a workaround
+        try {
+          const anyClient = supabase.auth as any;
+          if (anyClient.signIn) {
+            console.log('Using any cast signIn method');
+            ({ data, error } = await anyClient.signIn({
+              email,
+              password
+            }));
+          } else if (anyClient.signInWithPassword) {
+            console.log('Using any cast signInWithPassword method');
+            ({ data, error } = await anyClient.signInWithPassword({
+              email,
+              password
+            }));
+          } else {
+            throw new Error('No authentication methods found');
+          }
+        } catch (finalError) {
+          console.error('Final authentication attempt failed:', finalError);
+          throw finalError;
+        }
+      }
       
       if (error) {
         console.error('Supabase auth error:', error);

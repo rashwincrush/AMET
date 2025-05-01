@@ -35,6 +35,14 @@ const createMockClient = () => {
         console.log('Mock signInWith called with:', params);
         return Promise.resolve({ data: {}, error: null });
       },
+      signInWithPassword: (params) => {
+        console.log('Mock signInWithPassword called with:', params);
+        return Promise.resolve({ data: {}, error: null });
+      },
+      signIn: (params) => {
+        console.log('Mock signIn called with:', params);
+        return Promise.resolve({ data: {}, error: null });
+      },
     },
     storage: {
       from: (bucket) => ({
@@ -78,17 +86,34 @@ if (!isBuildOrServer()) {
         },
       });
       
-      // Add backwards compatibility for older Supabase method if needed
+      // Add compatibility methods for OAuth authentication
       if (!supabaseClient.auth.signInWithOAuth && supabaseClient.auth.signInWith) {
         console.log('Adding signInWithOAuth compatibility method');
         supabaseClient.auth.signInWithOAuth = supabaseClient.auth.signInWith;
       }
       
-      // Add compatibility for newer method if needed
       if (!supabaseClient.auth.signInWith && supabaseClient.auth.signInWithOAuth) {
         console.log('Adding signInWith compatibility method');
         supabaseClient.auth.signInWith = supabaseClient.auth.signInWithOAuth;
       }
+      
+      // Add compatibility methods for password authentication
+      if (!supabaseClient.auth.signInWithPassword && supabaseClient.auth.signIn) {
+        console.log('Adding signInWithPassword compatibility method');
+        supabaseClient.auth.signInWithPassword = (params) => {
+          return supabaseClient.auth.signIn(params);
+        };
+      }
+      
+      if (!supabaseClient.auth.signIn && supabaseClient.auth.signInWithPassword) {
+        console.log('Adding signIn compatibility method');
+        supabaseClient.auth.signIn = (params) => {
+          return supabaseClient.auth.signInWithPassword(params);
+        };
+      }
+      
+      // Log available auth methods
+      console.log('Available auth methods:', Object.keys(supabaseClient.auth));
     }
   } catch (error) {
     console.error('Error creating Supabase client:', error);
