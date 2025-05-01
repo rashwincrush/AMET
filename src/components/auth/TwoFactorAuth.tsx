@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { QRCodeSVG } from 'qrcode.react';
+// QR code functionality removed as requested
 
 export default function TwoFactorAuth() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function TwoFactorAuth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [totpUri, setTotpUri] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [verificationCode, setVerificationCode] = useState('');
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
@@ -68,7 +68,12 @@ export default function TwoFactorAuth() {
       
       if (qrError) throw qrError;
       
-      setQrCode(qrData.qr_code);
+      // Use type assertion and safely handle the response
+      const qrDataAny = qrData as any;
+      const uri = typeof qrDataAny === 'object' && qrDataAny !== null ? 
+        (qrDataAny.uri || qrDataAny.totp_uri || qrDataAny.qr_code || JSON.stringify(qrDataAny)) : 
+        'Please enter this code manually in your authenticator app';
+      setTotpUri(uri);
       setSecret(data.id);
       setChallengeId(qrData.id);
       setSuccess('2FA setup initiated. Please scan the QR code with your authenticator app.');
@@ -142,7 +147,7 @@ export default function TwoFactorAuth() {
       if (recoveryError) throw recoveryError;
       
       setIs2FAEnabled(false);
-      setQrCode(null);
+      setTotpUri(null);
       setSecret(null);
       setVerificationCode('');
       setRecoveryCodes([]);
@@ -201,13 +206,13 @@ export default function TwoFactorAuth() {
                   {loading ? 'Disabling...' : 'Disable 2FA'}
                 </Button>
               </div>
-            ) : qrCode ? (
+            ) : totpUri ? (
               <div className="space-y-4">
-                <div className="flex justify-center">
-                  <QRCodeSVG value={qrCode} size={200} />
+                <div className="flex justify-center bg-gray-100 p-4 rounded-md">
+                  <div className="font-mono text-sm break-all">{totpUri}</div>
                 </div>
                 <p className="text-sm text-center">
-                  Scan this QR code with your authenticator app (like Google Authenticator, Authy, or Microsoft Authenticator).
+                  Manually enter this code in your authenticator app (like Google Authenticator, Authy, or Microsoft Authenticator).
                 </p>
                 <div className="space-y-2">
                   <Label htmlFor="verificationCode">Verification Code</Label>
