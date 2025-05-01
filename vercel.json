@@ -1,5 +1,6 @@
 {
-  "env": {
+  "buildCommand": "next build",
+  "environment": {
     "NEXT_PUBLIC_USE_MOCK_DATA": "true"
   },
   "headers": [
