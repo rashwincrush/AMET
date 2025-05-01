@@ -137,18 +137,23 @@ export default function SignUpPage() {
           }
           
           // Update the profiles table with all user information
-          // Use type assertion to handle the PostgrestResponse type
-          const response = await supabase
-            .from('profiles')
-            .update(profileUpdateData)
-            .eq('id', data.user.id);
-            
-          const { error: profileError } = response as { data: any, error: any };
-            
-          if (profileError) {
-            console.error('Error updating user profile:', profileError);
-          } else {
-            console.log('Successfully updated user profile with phone number and other details');
+          try {
+            // Wrap the operation in try/catch to handle any type issues
+            // Handle possible type inconsistencies by using as any
+            const profileClient = supabase.from('profiles') as any;
+            const response = await profileClient
+              .update(profileUpdateData)
+              .eq('id', data.user.id);
+              
+            const { error: profileError } = response as { data: any, error: any };
+              
+            if (profileError) {
+              console.error('Error updating user profile:', profileError);
+            } else {
+              console.log('Successfully updated user profile with phone number and other details');
+            }
+          } catch (err) {
+            console.error('Exception updating profile:', err);
           }
 
           // THIRD: Try a direct API call to update phone (fallback solution)
