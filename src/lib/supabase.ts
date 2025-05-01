@@ -1,41 +1,59 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Production build - no debug logs
+// Get environment variables
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Check for environment variables and provide fallback
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Creating mock Supabase client as fallback - missing environment variables');
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Create a custom fetch implementation that logs detailed errors in development
+const customFetch = (...args: Parameters<typeof fetch>) => {
+  return fetch(...args).then(async (response) => {
+    if (!response.ok && process.env.NODE_ENV !== 'production') {
+      const errorText = await response.text();
+      console.error('Supabase API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        errorText,
+      });
+    }
+    return response;
+  });
+};
 
-// Initialize Supabase client with simplified configuration
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+// Initialize Supabase client with improved configuration
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    flowType: 'implicit'
   },
   global: {
     headers: {
-      'apikey': supabaseAnonKey,
+      'apikey': supabaseAnonKey || '',
     },
+    fetch: customFetch,
   },
 });
 
 // Initialize admin Supabase client for server-side operations
-export const supabaseServer = createClient(supabaseUrl, supabaseServiceRoleKey || supabaseAnonKey, {
+export const supabaseServer = createClient(supabaseUrl || '', supabaseServiceRoleKey || supabaseAnonKey || '', {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
   },
   global: {
     headers: {
-      'apikey': supabaseServiceRoleKey || supabaseAnonKey,
+      'apikey': supabaseServiceRoleKey || supabaseAnonKey || '',
     },
+    fetch: customFetch,
   },
 });
 

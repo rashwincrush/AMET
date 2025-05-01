@@ -40,56 +40,13 @@ export default function Login() {
 
     try {
       setLoading(true);
-      // Authentication attempt
+      console.log('Attempting to sign in with:', email);
       
-      let data, error;
-      
-      // Try different authentication methods to ensure compatibility
-      try {
-        // First try the newer method (signInWithPassword)
-        if (typeof supabase.auth.signInWithPassword === 'function') {
-
-          ({ data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-          }));
-        }
-        // Fall back to the older method (signIn)
-        else if (typeof (supabase.auth as any).signIn === 'function') {
-
-          ({ data, error } = await (supabase.auth as any).signIn({
-            email,
-            password
-          }));
-        } 
-        else {
-          throw new Error('No compatible authentication method available');
-        }
-      } catch (authError) {
-        console.error('Authentication method error:', authError);
-        // Last resort: try direct method invocation as a workaround
-        try {
-          const anyClient = supabase.auth as any;
-          if (anyClient.signIn) {
-
-            ({ data, error } = await anyClient.signIn({
-              email,
-              password
-            }));
-          } else if (anyClient.signInWithPassword) {
-
-            ({ data, error } = await anyClient.signInWithPassword({
-              email,
-              password
-            }));
-          } else {
-            throw new Error('No authentication methods found');
-          }
-        } catch (finalError) {
-          console.error('Final authentication attempt failed:', finalError);
-          throw finalError;
-        }
-      }
+      // Use a simple, direct authentication approach
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
       if (error) {
         console.error('Supabase auth error:', error);
@@ -97,6 +54,7 @@ export default function Login() {
       }
       
       // Login successful, redirecting
+      console.log('Login successful, redirecting to dashboard');
       
       // Always redirect to the dashboard page after successful login
       // Use setTimeout to ensure the auth state is updated before redirecting

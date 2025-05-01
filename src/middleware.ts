@@ -23,13 +23,14 @@ function isPublicRoute(path: string) {
     path.includes('.svg');
 }
 
-// Add security headers and handle root page redirect
+// Handle authentication and security headers
 export async function middleware(request: NextRequest) {
-  // Handle root route redirection to avoid static generation issues
-  if (request.nextUrl.pathname === '/') {
+  // Handle root and index route redirection
+  if (request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/index') {
     return NextResponse.redirect(new URL('/home', request.url));
   }
   
+  // Create a response object
   let response = NextResponse.next();
   
   // Add security headers
@@ -38,21 +39,32 @@ export async function middleware(request: NextRequest) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
   
-  // Only check authentication for non-public routes
-  if (!isPublicRoute(request.nextUrl.pathname)) {
-    try {
-      // Create a Supabase client for handling auth in middleware
-      const supabase = createMiddlewareClient({ req: request, res: response });
-      
-      // Check the session
+  try {
+    // Create a Supabase client for handling auth in middleware
+    const supabase = createMiddlewareClient({ req: request, res: response });
+    
+    // Refresh the session - this is important to keep the session alive
+    // and ensure auth state is current
+    await supabase.auth.getSession();
+    
+    // Only check authentication for non-public routes
+    if (!isPublicRoute(request.nextUrl.pathname)) {
+      // Get the session after refreshing
       const { data: { session } } = await supabase.auth.getSession();
       
       // If no session and trying to access protected route, redirect to login
-      if (!session && !isPublicRoute(request.nextUrl.pathname)) {
-        return NextResponse.redirect(new URL('/auth/login', request.url));
+      if (!session) {
+        const redirectUrl = new URL('/auth/login', request.url);
+        // Add the original URL as a query parameter for redirecting back after login
+        redirectUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
+        return NextResponse.redirect(redirectUrl);
       }
-    } catch (e) {
-      console.error('Middleware auth error:', e);
+    }
+  } catch (e) {
+    console.error('Middleware auth error:', e);
+    // In case of auth error on protected routes, redirect to login
+    if (!isPublicRoute(request.nextUrl.pathname)) {
+      return NextResponse.redirect(new URL('/auth/login', request.url));
     }
   }
   
