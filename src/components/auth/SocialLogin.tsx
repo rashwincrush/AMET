@@ -68,7 +68,7 @@ export default function SocialLogin({
           variant="outline"
           onClick={() => handleSocialLogin('google')}
           disabled={loading['google']}
-          className="w-full"
+          className="w-full bg-white hover:bg-blue-50 text-blue-800 border border-blue-300"
         >
           {loading['google'] ? (
             <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></span>
@@ -84,7 +84,7 @@ export default function SocialLogin({
           variant="outline"
           onClick={() => handleSocialLogin('linkedin')}
           disabled={loading['linkedin']}
-          className="w-full"
+          className="w-full bg-white hover:bg-blue-50 text-blue-800 border border-blue-300"
         >
           {loading['linkedin'] ? (
             <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></span>

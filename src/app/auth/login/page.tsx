@@ -186,7 +186,7 @@ export default function Login() {
           <div className="mt-6">
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-lg font-bold"
+              className="w-full bg-white hover:bg-blue-50 text-blue-800 py-2 px-4 rounded-md text-lg font-bold border border-blue-300"
               disabled={loading}
             >
               {loading ? 'Signing in...' : 'SIGN IN'}
