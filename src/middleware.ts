@@ -17,10 +17,13 @@ function isPublicRoute(path: string) {
   return PUBLIC_ROUTES.some(route => path.startsWith(route)) ||
     path.startsWith('/_next') ||
     path.startsWith('/api/public') ||
-    path.includes('favicon.ico') ||
+    path.includes('favicon') ||
+    path.includes('/site.webmanifest') ||
     path.includes('.png') ||
     path.includes('.jpg') ||
-    path.includes('.svg');
+    path.includes('.svg') ||
+    path.includes('.ico') ||
+    path.includes('.json');
 }
 
 // Add security headers and handle root page redirect
@@ -37,6 +40,12 @@ export async function middleware(request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
+  
+  // Add CORS headers
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
   
   // Only check authentication for non-public routes
   if (!isPublicRoute(request.nextUrl.pathname)) {

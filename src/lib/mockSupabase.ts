@@ -133,9 +133,36 @@ export const createMockSupabaseClient = () => {
         return {
           select: (columns: string) => {
             console.log(`[MOCK] Selecting ${columns} from user_roles`);
+            
+            // Check for the problematic inner join query pattern that causes 406 errors
+            const isInnerJoinQuery = columns && columns.includes('roles!inner');
+            console.log(`[MOCK] Is inner join query: ${isInnerJoinQuery}`);
+            
             return {
               eq: (field: string, value: any) => {
-                console.log(`[MOCK] Filtering ${field}=${value} in user_roles`);
+                console.log(`[MOCK] Filtering ${field}=${value} in user_roles with columns: ${columns}`);
+                
+                // Return properly structured response for the inner join query
+                if (isInnerJoinQuery) {
+                  return Promise.resolve({
+                    data: [
+                      {
+                        id: '1',
+                        profile_id: value, // Use the actual filter value
+                        role_id: '1',
+                        created_at: '2023-01-01T00:00:00.000Z',
+                        roles: {
+                          id: '1',
+                          name: 'alumni',
+                          permissions: ['view_events', 'view_jobs', 'view_profiles', 'message_alumni']
+                        }
+                      }
+                    ],
+                    error: null
+                  });
+                }
+                
+                // For standard queries
                 return Promise.resolve({
                   data: mockUserRoles,
                   error: null
