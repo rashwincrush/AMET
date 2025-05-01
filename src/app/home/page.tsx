@@ -82,8 +82,8 @@ export default function HomePage() {
                 A comprehensive platform for connecting with fellow alumni, exploring events, finding job opportunities, and building mentorship relationships.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 rounded-md text-lg font-medium transition-all duration-300 shadow-md">
-                  <Link href="/auth/signup" className="inline-block w-full">
+                <Button className="bg-white hover:bg-gray-100 px-8 py-3 rounded-md text-lg font-medium transition-all duration-300 shadow-md">
+                  <Link href="/auth/signup" className="inline-block w-full text-blue-600">
                     Register Now
                   </Link>
                 </Button>
@@ -278,8 +278,8 @@ export default function HomePage() {
             Connect with fellow graduates, access exclusive resources, and advance your career.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 rounded-md text-lg font-medium transition-all duration-300 shadow-md">
-              <Link href="/auth/signup" className="inline-block w-full">
+            <Button className="bg-white hover:bg-gray-100 px-8 py-3 rounded-md text-lg font-medium transition-all duration-300 shadow-md">
+              <Link href="/auth/signup" className="inline-block w-full text-blue-600">
                 Register Now
               </Link>
             </Button>

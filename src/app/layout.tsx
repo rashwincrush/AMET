@@ -34,10 +34,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {/* Add a debugging element that will be unmistakable */}
-        <div style={{ background: 'red', color: 'white', padding: '10px', textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}>
-          UPDATED LAYOUT - REDIRECTING TO HOME - {new Date().toISOString()}
-        </div>
         <AuthProvider>
           <AppInitializer />
           <Providers>
