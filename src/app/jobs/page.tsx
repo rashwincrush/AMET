@@ -9,9 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { marineJobs } from '@/mock';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-// Simple type definition for jobs based on MarineJob
+// Job type definition
 type Job = {
   id: string;
   title: string;
@@ -33,95 +33,92 @@ type Job = {
   tags: string[];
 };
 
+// Helper functions
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+const getJobTypeBadgeColor = (jobType: string) => {
+  switch (jobType.toLowerCase()) {
+    case 'full-time': return 'bg-green-100 text-green-800';
+    case 'part-time': return 'bg-blue-100 text-blue-800';
+    case 'contract': return 'bg-purple-100 text-purple-800';
+    case 'internship': return 'bg-yellow-100 text-yellow-800';
+    case 'remote': return 'bg-indigo-100 text-indigo-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+};
+
 export default function JobsPage() {
   const router = useRouter();
   const { user } = useAuth();
   
+  // State management
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Basic search functionality 
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
+  // Load jobs data
   useEffect(() => {
-    // Load mock jobs data - using marine jobs instead of regular jobs
-    function loadJobs() {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Use marine jobs directly - they already match our Job type
-        setJobs(marineJobs);
-      } catch (err) {
-        console.error('Error loading jobs:', err);
-        setError('Failed to load jobs. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
+    try {
+      setLoading(true);
+      setJobs(marineJobs);
+    } catch (err) {
+      console.error('Error loading jobs:', err);
+      setError('Failed to load jobs. Please try again later.');
+    } finally {
+      setLoading(false);
     }
-    
-    loadJobs();
   }, []);
   
-  // Handle job selection for details view
+  // Event handlers
   const handleViewDetails = (job: Job) => {
     setSelectedJob(job);
     setIsDialogOpen(true);
   };
   
-  // Handle dialog close
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-  };
-  
-  // Handle job application
   const handleApply = (job: Job) => {
-    // If application link is provided, open it in a new tab
     if (job.applicationLink) {
       window.open(job.applicationLink, '_blank');
     } else {
-      // Otherwise, prepare an email
       window.location.href = `mailto:${job.contactEmail}?subject=Application for ${job.title} Position&body=Dear Hiring Manager,%0D%0A%0D%0AI am writing to express my interest in the ${job.title} position at ${job.company}.%0D%0A%0D%0A[Include your qualifications and experience here]%0D%0A%0D%0AThank you for your consideration.%0D%0A%0D%0ASincerely,%0D%0A[Your Name]`;
     }
   };
+
+  // Calculate stats for PublicPageWrapper
+  const stats = [
+    { label: 'Active Jobs', value: String(jobs.length) },
+    { label: 'Companies Hiring', value: String(Array.from(new Set(jobs.map(job => job.company))).length) },
+    { label: 'Success Rate', value: '78%' }
+  ];
+
+  // Filter jobs based on search term
+  const filteredJobs = jobs.filter(job => 
+    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    job.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    job.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
   
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  // Component: Job Requirements List
+  const JobRequirements = ({ requirements }: { requirements: string[] }) => (
+    <ul className="list-disc pl-5 space-y-1">
+      {requirements.map((req, index) => (
+        <li key={index} className="text-sm">{req}</li>
+      ))}
+    </ul>
+  );
   
-  // Get job type badge color
-  const getJobTypeBadgeColor = (jobType: string) => {
-    switch (jobType.toLowerCase()) {
-      case 'full-time': return 'bg-green-100 text-green-800';
-      case 'part-time': return 'bg-blue-100 text-blue-800';
-      case 'contract': return 'bg-purple-100 text-purple-800';
-      case 'internship': return 'bg-yellow-100 text-yellow-800';
-      case 'remote': return 'bg-indigo-100 text-indigo-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-  
-  // Format requirements as bullet points
-  const formatRequirements = (requirements: string[]) => {
-    return (
-      <ul className="list-disc pl-5 space-y-1">
-        {requirements.map((req, index) => (
-          <li key={index} className="text-sm">{req}</li>
-        ))}
-      </ul>
-    );
-  };
-  
-  // Simple preview component for non-authenticated users
+  // Component: Job Preview for non-authenticated users
   const JobsPreview = () => {
     const previewJobs = jobs.slice(0, 2);
     
@@ -152,7 +149,7 @@ export default function JobsPage() {
     );
   };
   
-  // Job details dialog component
+  // Component: Job Details Dialog
   const JobDetailsDialog = () => {
     if (!selectedJob) return null;
     
@@ -197,7 +194,7 @@ export default function JobsPage() {
               
               <div>
                 <h3 className="text-lg font-semibold mb-2">Requirements</h3>
-                {formatRequirements(selectedJob.requirements)}
+                <JobRequirements requirements={selectedJob.requirements} />
               </div>
             </div>
             
@@ -222,7 +219,7 @@ export default function JobsPage() {
                 <Button 
                   variant="outline" 
                   className="w-full" 
-                  onClick={handleCloseDialog}
+                  onClick={() => setIsDialogOpen(false)}
                 >
                   Close
                 </Button>
@@ -234,17 +231,8 @@ export default function JobsPage() {
     );
   };
   
-  // Main content component for authenticated users
+  // Component: Main content for authenticated users
   const JobsContent = () => {
-    // Filter jobs based on search term
-    const filteredJobs = jobs.filter(job => 
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-    
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -332,23 +320,16 @@ export default function JobsPage() {
                     </CardFooter>
                   </Card>
                 ))}
-                
-                {/* Job Details Dialog */}
-                <JobDetailsDialog />
               </>
             )}
           </div>
         )}
+        
+        {/* Job Details Dialog */}
+        <JobDetailsDialog />
       </div>
     );
   };
-
-  // Calculate stats for PublicPageWrapper
-  const stats = [
-    { label: 'Active Jobs', value: String(jobs.length) },
-    { label: 'Companies Hiring', value: String(Array.from(new Set(jobs.map(job => job.company))).length) },
-    { label: 'Success Rate', value: '78%' }
-  ];
 
   return (
     <PublicPageWrapper

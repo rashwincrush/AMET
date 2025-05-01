@@ -4,6 +4,7 @@ export * from './jobs';
 export * from './alumni';
 export * from './messages';
 export * from './marine-jobs';
+export * from './marine-alumni';
 
 // Helper function to determine if mock data should be used
 export const useMockData = (): boolean => {

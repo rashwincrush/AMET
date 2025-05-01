@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { profileService } from '@/lib/services/profileService';
 import { Profile } from '@/types/database';
 import ProfileCard from '@/components/directory/ProfileCard';
-import { mockAlumni } from '@/mock';
+import { mockAlumni, marineAlumni } from '@/mock';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -34,7 +34,21 @@ import _ from 'lodash';
 const INDUSTRIES = [
   'Technology', 'Healthcare', 'Finance', 'Education', 
   'Manufacturing', 'Retail', 'Marketing', 'Consulting',
-  'Entertainment', 'Government', 'Non-profit', 'Other'
+  'Entertainment', 'Government', 'Non-profit', 'Marine Biology',
+  'Oceanography', 'Naval Architecture', 'Marine Engineering',
+  'Marine Conservation', 'Naval Science', 'Maritime', 'Other'
+];
+
+// Marine-related fields of study
+const MARINE_FIELDS = [
+  'Marine Biology',
+  'Oceanography',
+  'Naval Architecture',
+  'Marine Engineering',
+  'Marine Conservation',
+  'Naval Science',
+  'Marine Resource Management',
+  'Marine Microbiology'
 ];
 
 // Add graduation year options (last 50 years)
@@ -55,11 +69,13 @@ export default function DirectoryPage() {
     major: string | null;
     industry: string | null;
     location: string | null;
+    marineOnly: boolean;
   }>({
     graduationYear: null,
     major: null,
     industry: null,
-    location: null
+    location: null,
+    marineOnly: false
   });
   
   // Derived state for active filters count
@@ -82,8 +98,11 @@ export default function DirectoryPage() {
     try {
       setLoading(true);
       
+      // Combine regular and marine alumni
+      const combinedAlumni = [...mockAlumni, ...marineAlumni];
+      
       // Convert mock alumni data to match the Profile type
-      const formattedProfiles: Profile[] = mockAlumni.map(alumni => ({
+      const formattedProfiles: Profile[] = combinedAlumni.map(alumni => ({
         id: alumni.id,
         first_name: alumni.firstName,
         last_name: alumni.lastName,
@@ -171,6 +190,31 @@ export default function DirectoryPage() {
         );
       }
       
+      // Filter for marine-only profiles
+      if (activeFilters.marineOnly) {
+        results = results.filter(profile => {
+          // Check if major is a marine field
+          const isMajorMarine = MARINE_FIELDS.some(field => 
+            profile.major?.toLowerCase().includes(field.toLowerCase())
+          );
+          
+          // Check if industry is marine-related
+          const isIndustryMarine = profile.industry?.toLowerCase().includes('marine') || 
+            profile.industry?.toLowerCase().includes('naval') || 
+            profile.industry?.toLowerCase().includes('ocean') || 
+            profile.industry?.toLowerCase().includes('maritime');
+            
+          // Check if current company/position is marine-related (using industry field as it contains company info)
+          const isCompanyMarine = profile.industry?.toLowerCase().includes('marine') || 
+            profile.industry?.toLowerCase().includes('naval') || 
+            profile.industry?.toLowerCase().includes('ocean') || 
+            profile.industry?.toLowerCase().includes('maritime') ||
+            profile.industry?.toLowerCase().includes('navy');
+            
+          return isMajorMarine || isIndustryMarine || isCompanyMarine;
+        });
+      }
+      
       setResultsCount(results.length);
       setTotalPages(Math.ceil(results.length / PROFILES_PER_PAGE));
       setFilteredProfiles(results);
@@ -195,7 +239,8 @@ export default function DirectoryPage() {
       graduationYear: null,
       major: null,
       industry: null,
-      location: null
+      location: null,
+      marineOnly: false
     });
     setSearchQuery('');
     debouncedSearch('');
@@ -342,6 +387,15 @@ export default function DirectoryPage() {
           </Badge>
         )}
         
+        {activeFilters.marineOnly && (
+          <Badge variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-800">
+            Marine & Navy Profiles Only
+            <button onClick={() => clearSingleFilter('marineOnly')} className="ml-1 rounded-full">
+              <ClearIcon size={14} />
+            </button>
+          </Badge>
+        )}
+        
         {(activeFilterCount > 0 || searchQuery) && (
           <Button 
             variant="ghost" 
@@ -363,6 +417,16 @@ export default function DirectoryPage() {
         <FilterIcon size={18} className="mr-2" />
         Filter Alumni
       </h2>
+      
+      <div className="mb-4">
+        <Button
+          variant={activeFilters.marineOnly ? "default" : "outline"}
+          className={`w-full ${activeFilters.marineOnly ? "bg-blue-600" : ""}`}
+          onClick={() => handleFilterChange('marineOnly', activeFilters.marineOnly ? null : 'true')}
+        >
+          {activeFilters.marineOnly ? "Showing Marine & Navy Only" : "Show Marine & Navy Profiles"}
+        </Button>
+      </div>
       
       <div className="space-y-4">
         <div>
@@ -493,9 +557,17 @@ export default function DirectoryPage() {
         ) : currentProfiles.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentProfiles.map(profile => (
-                <ProfileCard key={profile.id} profile={profile} />
-              ))}
+              {currentProfiles.map(profile => {
+                // Find the original alumni data for this profile
+                const originalAlumni = [...mockAlumni, ...marineAlumni].find(a => a.id === profile.id);
+                return (
+                  <ProfileCard 
+                    key={profile.id} 
+                    profile={profile} 
+                    fullProfile={originalAlumni}
+                  />
+                );
+              })}
             </div>
             <Pagination />
           </>
@@ -580,7 +652,7 @@ export default function DirectoryPage() {
         <Tabs defaultValue="featured">
           <TabsList className="w-full mb-6">
             <TabsTrigger value="featured" className="flex-1">Featured Alumni</TabsTrigger>
-            <TabsTrigger value="recent" className="flex-1">Recent Graduates</TabsTrigger>
+            <TabsTrigger value="marine" className="flex-1">Marine & Navy</TabsTrigger>
             <TabsTrigger value="international" className="flex-1">Global Network</TabsTrigger>
           </TabsList>
           
@@ -591,9 +663,18 @@ export default function DirectoryPage() {
               </div>
             ) : previewProfiles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {previewProfiles.map(profile => (
-                  <ProfileCard key={profile.id} profile={profile} isPreview={true} />
-                ))}
+                {previewProfiles.map(profile => {
+                  // Find the original alumni data for this profile
+                  const originalAlumni = [...mockAlumni, ...marineAlumni].find(a => a.id === profile.id);
+                  return (
+                    <ProfileCard 
+                      key={profile.id} 
+                      profile={profile} 
+                      isPreview={true} 
+                      fullProfile={originalAlumni}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">
@@ -602,10 +683,36 @@ export default function DirectoryPage() {
             )}
           </TabsContent>
           
-          <TabsContent value="recent">
-            <div className="text-center py-12">
-              <h3 className="text-xl font-semibold mb-2">Sign in to view recent graduates</h3>
-              <p className="text-gray-500 mb-4">Access our full directory to connect with recent alumni</p>
+          <TabsContent value="marine">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {marineAlumni.slice(0, 6).map(alumnus => {
+                // Convert to Profile format for ProfileCard
+                const profile: Profile = {
+                  id: alumnus.id,
+                  first_name: alumnus.firstName,
+                  last_name: alumnus.lastName,
+                  email: alumnus.email,
+                  avatar_url: alumnus.avatarUrl,
+                  graduation_year: parseInt(alumnus.graduationYear),
+                  major: alumnus.major,
+                  industry: alumnus.company,
+                  location: alumnus.location,
+                  bio: alumnus.bio,
+                  phone_number: alumnus.phoneNumber,
+                  is_verified: alumnus.isVerified,
+                  created_at: alumnus.joinedDate,
+                  updated_at: alumnus.joinedDate
+                };
+                
+                return (
+                  <ProfileCard 
+                    key={profile.id} 
+                    profile={profile} 
+                    isPreview={true}
+                    fullProfile={alumnus}
+                  />
+                );
+              })}
             </div>
           </TabsContent>
           
@@ -633,14 +740,14 @@ export default function DirectoryPage() {
   
   return (
     <PublicPageWrapper
-      title="Alumni Directory"
-      description="Connect with thousands of alumni from around the world. Build your professional network and discover career opportunities."
-      ctaText="Sign in or create an account to access the full alumni directory with detailed profiles and advanced search features."
+      title="Marine & Navy Alumni Directory"
+      description="Connect with marine biologists, naval officers, oceanographers, and other alumni from marine and navy backgrounds. Build your professional network and discover career opportunities in marine sciences and naval industries."
+      ctaText="Sign in or create an account to access the full alumni directory with detailed profiles, direct messaging, and advanced search features."
       stats={[
-        { value: "5,000+", label: "Alumni Profiles" },
-        { value: "120+", label: "Countries" },
-        { value: "500+", label: "Companies" },
-        { value: "95%", label: "Career Success Rate" }
+        { value: "500+", label: "Marine & Navy Alumni" },
+        { value: "85+", label: "Research Vessels" },
+        { value: "120+", label: "Maritime Companies" },
+        { value: "92%", label: "Field Placement Rate" }
       ]}
       previewComponent={<ProfilesPreview />}
     >

@@ -1,6 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Eye } from 'lucide-react';
+import ProfileDetailModal from './ProfileDetailModal';
+import { AlumniProfile } from '@/mock/alumni';
 
 type ProfileCardProps = {
   profile: {
@@ -18,9 +23,11 @@ type ProfileCardProps = {
     is_mentor?: boolean;
   };
   isPreview?: boolean;
+  fullProfile?: AlumniProfile; // Optional full profile data for the modal
 };
 
-export default function ProfileCard({ profile, isPreview = false }: ProfileCardProps) {
+export default function ProfileCard({ profile, isPreview = false, fullProfile }: ProfileCardProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div className="bg-white shadow-md hover:shadow-xl rounded-lg overflow-hidden transition-all duration-300 border border-gray-100 flex flex-col h-full transform hover:-translate-y-1">
       <div className="bg-gradient-to-r from-primary-600 to-secondary-700 h-3"></div>
@@ -87,12 +94,15 @@ export default function ProfileCard({ profile, isPreview = false }: ProfileCardP
               Sign in to view full profile
             </div>
           ) : (
-            <Link
-              href={`/profile/${profile.id}`}
-              className="text-sm text-indigo-600 hover:text-indigo-900"
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-sm text-indigo-600 hover:text-indigo-900 p-0"
+              onClick={() => setIsModalOpen(true)}
             >
-              View Full Profile →
-            </Link>
+              <Eye className="h-4 w-4 mr-1" />
+              View Full Profile
+            </Button>
           )}
           
           {profile.is_mentor && (
@@ -102,6 +112,15 @@ export default function ProfileCard({ profile, isPreview = false }: ProfileCardP
           )}
         </div>
       </div>
+
+      {/* Profile Detail Modal */}
+      {!isPreview && fullProfile && (
+        <ProfileDetailModal 
+          profile={fullProfile}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
