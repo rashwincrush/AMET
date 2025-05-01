@@ -3,21 +3,10 @@
   "version": "0.1.1",
   "private": true,
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "dev:3001": "PORT=3001 next dev",
-    "dev:mock": "NEXT_PUBLIC_USE_MOCK_DATA=true next dev",
-    "dev:start": "next dev -p 3000",
-    "force-build": "DISABLE_ESLINT_PLUGIN=true NEXT_DISABLE_ESLINT=1 next build",
-    "lint": "next lint",
-    "preinstall": "npm install framer-motion --no-save",
-    "skip-build": "npx tailwindcss-cli build -o public/build/tailwind.css && rm -rf .next && mkdir -p .next/static && cp -r public/build .next/static/ && echo 'Build skipped' && node scripts/create-empty-build.js",
+    "build": "NODE_ENV=production NEXT_DISABLE_ESLINT=1 DISABLE_ESLINT_PLUGIN=true next build",
+    "start": "NODE_ENV=production next start",
     "clean": "rm -rf .next node_modules && npm cache clean --force",
-    "prod:build": "npm run clean && NODE_ENV=production NEXT_DISABLE_ESLINT=1 DISABLE_ESLINT_PLUGIN=true next build",
-    "prod:start": "NODE_ENV=production next start",
-    "start": "node server.js",
-    "vercel-build": "NODE_OPTIONS=\"--max_old_space_size=4096\" node install-deps.js && node vercel-build-workaround.js",
-    "vercel:export": "SKIP_API_ROUTES=true NEXT_PUBLIC_USE_MOCK_DATA=true USE_MOCK_DATA=true next build"
+    "vercel-build": "NODE_OPTIONS=\"--max_old_space_size=4096\" node install-deps.js && node vercel-build-workaround.js"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.2.1",
