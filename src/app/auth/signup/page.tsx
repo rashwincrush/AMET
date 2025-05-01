@@ -65,14 +65,16 @@ export default function SignUpPage() {
 
     try {
       setLoading(true);
+      // First register the user with phone number
       const { error: signUpError, data } = await supabase.auth.signUp({
         email: formData.email,
+        phone: formData.phoneNumber, // Register phone directly with Auth
         password: formData.password,
         options: {
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
-            phone_number: formData.phoneNumber,
+            phone_number: formData.phoneNumber, // Also keep in metadata for compatibility
             student_id: formData.studentId,
             graduation_year: formData.graduationYear,
             degree: formData.degree,
@@ -93,26 +95,37 @@ export default function SignUpPage() {
           await assignDefaultRole(data.user.id);
           console.log('Successfully assigned alumni role to user');
           
+          // Create a comprehensive profile update with all user details
+          const profileUpdateData: any = {
+            phone: formData.phoneNumber, // Ensure phone is stored in profiles table
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            student_id: formData.studentId,
+            graduation_year: formData.graduationYear,
+            degree: formData.degree
+          };
+          
           // Set initial mentorship role if selected
-          if (formData.mentorshipRole !== 'none') {
-            const updateData: any = {};
-            
+          if (formData.mentorshipRole !== 'none') {  
             if (formData.mentorshipRole === 'mentor' || formData.mentorshipRole === 'both') {
-              updateData.is_mentor = true;
+              profileUpdateData.is_mentor = true;
             }
             
             if (formData.mentorshipRole === 'mentee' || formData.mentorshipRole === 'both') {
-              updateData.is_mentee = true;
+              profileUpdateData.is_mentee = true;
             }
+          }
+          
+          // Update the profiles table with all user information
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update(profileUpdateData)
+            .eq('id', data.user.id);
             
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .update(updateData)
-              .eq('id', data.user.id);
-              
-            if (profileError) {
-              console.error('Error updating mentorship role:', profileError);
-            }
+          if (profileError) {
+            console.error('Error updating user profile:', profileError);
+          } else {
+            console.log('Successfully updated user profile with phone number and other details');
           }
         } else {
           console.error('Cannot assign role: user data is missing');
