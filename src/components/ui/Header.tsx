@@ -6,27 +6,38 @@ import { Button } from '@/components/ui/button';
 import { FaUser, FaSignOutAlt, FaSignInAlt, FaUserPlus, FaLock } from 'react-icons/fa';
 
 export default function Header() {
-  const { user, signOut, userRole } = useAuth();
+  // Fix the type error by using optional chaining and providing a default value
+  const { user, signOut } = useAuth();
+  const userRole = (useAuth() as any).userRole || null;
+  
+  console.log('DEBUG: Header component loaded - ' + new Date().toISOString());
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-blue-600 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex">
-            <Link href="/" className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-blue-600">Alumni Network</span>
+            <Link href="/home" className="flex-shrink-0 flex items-center">
+              <img 
+                src="/images/logo.jpg" 
+                alt="AMET Logo" 
+                width="120" 
+                height="40" 
+                className="h-10 w-auto bg-white p-1 rounded" 
+              />
+              <span className="ml-2 text-white font-bold text-lg">UPDATED HEADER</span>
             </Link>
             <nav className="hidden md:ml-6 md:flex md:space-x-4">
-              <Link href="/directory" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+              <Link href="/directory" className="px-3 py-2 rounded-md text-sm font-medium text-white hover:bg-blue-700">
                 Directory
               </Link>
-              <Link href="/events" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+              <Link href="/events" className="px-3 py-2 rounded-md text-sm font-medium text-white hover:bg-blue-700">
                 Events
               </Link>
-              <Link href="/jobs" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+              <Link href="/jobs" className="px-3 py-2 rounded-md text-sm font-medium text-white hover:bg-blue-700">
                 Jobs
               </Link>
-              <Link href="/mentorship" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+              <Link href="/mentorship" className="px-3 py-2 rounded-md text-sm font-medium text-white hover:bg-blue-700">
                 Mentorship
               </Link>
             </nav>
