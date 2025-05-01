@@ -65,16 +65,15 @@ export default function SignUpPage() {
 
     try {
       setLoading(true);
-      // First register the user with phone number
+      // First register the user with email and password
       const { error: signUpError, data } = await supabase.auth.signUp({
         email: formData.email,
-        phone: formData.phoneNumber, // Register phone directly with Auth
         password: formData.password,
         options: {
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
-            phone_number: formData.phoneNumber, // Also keep in metadata for compatibility
+            phone_number: formData.phoneNumber,
             student_id: formData.studentId,
             graduation_year: formData.graduationYear,
             degree: formData.degree,
@@ -95,7 +94,28 @@ export default function SignUpPage() {
           await assignDefaultRole(data.user.id);
           console.log('Successfully assigned alumni role to user');
           
-          // Create a comprehensive profile update with all user details
+          // FIRST: Update user metadata to include phone number so it appears in the Auth console
+          try {
+            const { error: metadataError } = await supabase.auth.updateUser({
+              email: formData.email,
+              phone: formData.phoneNumber, // This should make the phone visible in Supabase
+              data: {
+                phone_number: formData.phoneNumber,
+                first_name: formData.firstName,
+                last_name: formData.lastName
+              }
+            });
+            
+            if (metadataError) {
+              console.error('Error updating user metadata:', metadataError);
+            } else {
+              console.log('Successfully updated user metadata with phone number');
+            }
+          } catch (metaErr) {
+            console.error('Exception updating user metadata:', metaErr);
+          }
+          
+          // SECOND: Create a comprehensive profile update with all user details
           const profileUpdateData: any = {
             phone: formData.phoneNumber, // Ensure phone is stored in profiles table
             first_name: formData.firstName,
@@ -126,6 +146,25 @@ export default function SignUpPage() {
             console.error('Error updating user profile:', profileError);
           } else {
             console.log('Successfully updated user profile with phone number and other details');
+          }
+
+          // THIRD: Try a direct API call to update phone (fallback solution)
+          try {
+            // Update phone in the admin metadata (requires admin access)
+            await fetch('/api/admin/update-user-phone', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ 
+                userId: data.user.id,
+                phone: formData.phoneNumber 
+              }),
+            });
+            console.log('Admin phone update API called');
+          } catch (adminErr) {
+            console.error('Admin API error (non-blocking):', adminErr);
+            // Continue with signup flow even if admin update fails
           }
         } else {
           console.error('Cannot assign role: user data is missing');
