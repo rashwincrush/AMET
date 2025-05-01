@@ -38,6 +38,20 @@ export default function SignUpPage() {
       setError('Please fill in all fields');
       return;
     }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    
+    // Validate phone number with country code
+    const phoneRegex = /^\+[0-9]{1,4}[0-9]{6,14}$/;
+    if (!phoneRegex.test(formData.phoneNumber)) {
+      setError('Please enter a valid phone number with country code (e.g., +91 9876543210)');
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
@@ -209,18 +223,23 @@ export default function SignUpPage() {
             </div>
             <div>
               <label htmlFor="phone-number" className="block text-sm font-medium text-gray-700">
-                Phone number
+                Phone number (with country code) <span className="text-red-500">*</span>
               </label>
-              <input
-                id="phone-number"
-                name="phone-number"
-                type="tel"
-                autoComplete="tel"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
-                value={formData.phoneNumber}
-                onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-              />
+              <div className="relative mt-1">
+                <input
+                  id="phone-number"
+                  name="phone-number"
+                  type="tel"
+                  autoComplete="tel"
+                  required
+                  pattern="^\+[0-9]{1,4}[0-9]{6,14}$"
+                  placeholder="+91 9876543210"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
+                  value={formData.phoneNumber}
+                  onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+                />
+                <div className="text-xs text-gray-500 mt-1">Include country code (e.g., +91 for India)</div>
+              </div>
             </div>
             <div>
               <label htmlFor="student-id" className="block text-sm font-medium text-gray-700">
@@ -273,18 +292,22 @@ export default function SignUpPage() {
             </div>
             <div>
               <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">
-                Email address
+                Email address <span className="text-red-500">*</span>
               </label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-              />
+              <div className="relative mt-1">
+                <input
+                  id="email-address"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  placeholder="your.email@example.com"
+                />
+                <div className="text-xs text-gray-500 mt-1">Your email will be used for login and communication</div>
+              </div>
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
