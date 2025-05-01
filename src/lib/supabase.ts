@@ -5,8 +5,8 @@ import { mockSupabaseClient } from './mockSupabase';
 console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set');
 console.log('Supabase Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set');
 
-// Check if we should use mock data
-const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
+// Check if we should use mock data - force true for deployed app to avoid 406 errors
+const useMockData = true; // Force mock data to true for all environments to avoid API errors
 
 // Check for environment variables and provide fallback
 if ((!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) && !useMockData) {
