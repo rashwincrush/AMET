@@ -190,7 +190,7 @@ export default function EnhancedHeader() {
                           {user.email ? user.email[0].toUpperCase() : 'U'}
                         </div>
                         <span className={`hidden lg:block text-sm ${
-                          scrolled ? 'text-gray-700' : 'text-black'
+                          scrolled ? 'text-gray-700' : 'text-white'
                         }`}>
                           {user.email?.split('@')[0] || 'User'}
                         </span>
@@ -233,8 +233,10 @@ export default function EnhancedHeader() {
                 <Link href="/auth/login">
                   <Button 
                     variant={scrolled ? "outline" : "secondary"} 
-                    className={`text-sm ${scrolled ? 'border-blue-600 text-blue-600' : 'bg-white text-black'}
-                    `}
+                    size="sm"
+                    className={`flex items-center ${
+                      scrolled ? 'border-blue-600 text-blue-600 hover:bg-blue-50' : 'bg-white/90 text-blue-800 hover:bg-white'
+                    }`}
                   >
                     <FaSignInAlt className="mr-1.5 h-3.5 w-3.5" />
                     Sign In
@@ -242,7 +244,11 @@ export default function EnhancedHeader() {
                 </Link>
                 <Link href="/auth/signup">
                   <Button 
-                    className={`text-sm ${scrolled ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white text-blue-800 hover:bg-blue-50'}`}
+                    variant="default"
+                    size="sm"
+                    className={`flex items-center ${
+                      scrolled ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-50 text-blue-800 hover:bg-white border border-white'
+                    }`}
                   >
                     <FaUserPlus className="mr-1.5 h-3.5 w-3.5" />
                     Join Now
@@ -299,30 +305,34 @@ export default function EnhancedHeader() {
               
               {!user && (
                 <div className="grid grid-cols-2 gap-2 mt-3">
-                  <Link 
+                  <Button
+                    as={Link}
                     href="/auth/login" 
-                    className={`flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium ${
+                    variant={scrolled ? "outline" : "secondary"}
+                    className={`flex items-center justify-center w-full ${
                       scrolled 
-                        ? 'bg-white text-blue-600 border border-blue-600' 
-                        : 'bg-blue-600 text-white border border-blue-300'
+                        ? 'border-blue-600 text-blue-600 hover:bg-blue-50' 
+                        : 'bg-blue-600 text-white border border-blue-300 hover:bg-blue-700'
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <FaSignInAlt className="mr-2 h-4 w-4" />
                     Sign In
-                  </Link>
-                  <Link 
+                  </Button>
+                  <Button
+                    as={Link}
                     href="/auth/signup" 
-                    className={`flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium ${
+                    variant="default"
+                    className={`flex items-center justify-center w-full ${
                       scrolled 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-white text-blue-700'
+                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                        : 'bg-white text-blue-700 hover:bg-blue-50'
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <FaUserPlus className="mr-2 h-4 w-4" />
                     Join Now
-                  </Link>
+                  </Button>
                 </div>
               )}
             </div>
