@@ -8,6 +8,11 @@ const nextConfig = {
         destination: '/home',
         permanent: true,
       },
+      {
+        source: '/index',
+        destination: '/home',
+        permanent: true,
+      },
     ];
   },
   reactStrictMode: true,
