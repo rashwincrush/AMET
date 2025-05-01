@@ -70,15 +70,15 @@ export default function EnhancedHeader() {
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <div className="h-10 w-10 overflow-hidden rounded-full mr-2">
+              <div className="h-10 mr-2">
                 <img 
                   src="/images/amet-logo.jpg" 
                   alt="AMET Logo" 
-                  className="h-full w-full object-cover"
+                  className="h-full object-contain"
                 />
               </div>
               <span className={`text-lg font-bold ${scrolled ? 'text-blue-600' : 'text-white'} hidden sm:block transition-colors duration-300`}>
-                AMET Alumni
+                Alumni
               </span>
             </Link>
             <nav className="hidden md:ml-6 md:flex md:space-x-1">
@@ -246,7 +246,7 @@ export default function EnhancedHeader() {
                 </Link>
                 <Link href="/auth/signup">
                   <Button 
-                    className={`text-sm ${scrolled ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-white text-blue-800 hover:bg-blue-50'}`}
+                    className="text-sm bg-white text-blue-800 hover:bg-blue-50 border border-blue-300"
                   >
                     <FaUserPlus className="mr-1.5 h-3.5 w-3.5" />
                     Join Now
