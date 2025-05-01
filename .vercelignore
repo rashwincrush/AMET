@@ -1,0 +1,6 @@
+# Ignore files that might be causing deployment issues
+README.md
+.git
+.github
+node_modules
+.cache

@@ -23,10 +23,13 @@ function isPublicRoute(path: string) {
     path.includes('.svg');
 }
 
-// Handle authentication and security headers
+// Handle authentication, security headers, and routing
 export async function middleware(request: NextRequest) {
   // Handle root and index route redirection
-  if (request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/index') {
+  // This is the primary way we handle these routes to avoid static generation issues
+  if (request.nextUrl.pathname === '/' || 
+      request.nextUrl.pathname === '/index' ||
+      request.nextUrl.pathname === '/index.html') {
     return NextResponse.redirect(new URL('/home', request.url));
   }
   

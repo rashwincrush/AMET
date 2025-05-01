@@ -41,6 +41,10 @@ const nextConfig = {
   // Standard Next.js configuration for Vercel deployment
   // Removed standalone output mode to fix build issues
   
+  // Disable static generation for problematic routes
+  // This ensures these routes are always server-rendered
+  unstable_excludeFiles: ['**/index/page.tsx', '**/index/page.js', '**/index.tsx', '**/index.jsx'],
+  
   experimental: {
     serverComponentsExternalPackages: ['@supabase/ssr']
   },
