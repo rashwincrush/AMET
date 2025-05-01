@@ -27,6 +27,14 @@ const createMockClient = () => {
         return { data: { subscription: { unsubscribe: () => {} } } };
       },
       signOut: () => Promise.resolve({ error: null }),
+      signInWithOAuth: (params) => {
+        console.log('Mock signInWithOAuth called with:', params);
+        return Promise.resolve({ data: {}, error: null });
+      },
+      signInWith: (params) => {
+        console.log('Mock signInWith called with:', params);
+        return Promise.resolve({ data: {}, error: null });
+      },
     },
     storage: {
       from: (bucket) => ({
@@ -57,7 +65,30 @@ if (!isBuildOrServer()) {
   try {
     console.log('Creating real Supabase client with URL:', supabaseUrl);
     if (supabaseUrl && supabaseKey) {
-      supabaseClient = createClient(supabaseUrl, supabaseKey);
+      supabaseClient = createClient(supabaseUrl, supabaseKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        },
+        global: {
+          headers: {
+            'apikey': supabaseKey,
+          },
+        },
+      });
+      
+      // Add backwards compatibility for older Supabase method if needed
+      if (!supabaseClient.auth.signInWithOAuth && supabaseClient.auth.signInWith) {
+        console.log('Adding signInWithOAuth compatibility method');
+        supabaseClient.auth.signInWithOAuth = supabaseClient.auth.signInWith;
+      }
+      
+      // Add compatibility for newer method if needed
+      if (!supabaseClient.auth.signInWith && supabaseClient.auth.signInWithOAuth) {
+        console.log('Adding signInWith compatibility method');
+        supabaseClient.auth.signInWith = supabaseClient.auth.signInWithOAuth;
+      }
     }
   } catch (error) {
     console.error('Error creating Supabase client:', error);

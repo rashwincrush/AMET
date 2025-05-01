@@ -24,6 +24,8 @@ export default function SocialLogin({
       console.log(`Attempting to sign in with ${provider}`);
       console.log(`Redirect URL: ${window.location.origin}${redirectTo}`);
       
+      // We've added compatibility in the Supabase client, so we can just use signInWithOAuth
+      // which should work regardless of which version is actually implemented
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
