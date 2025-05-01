@@ -84,7 +84,8 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public (public files)
      * - api (API routes - handled separately)
+     * - / (root path - handled by the page component)
      */
-    '/((?!_next/static|_next/image|favicon.ico|public|api).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public|api|$).*)',
   ],
 };
