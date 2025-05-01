@@ -491,27 +491,17 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <Button
+            <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-800 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full py-3 px-4 mt-2 text-white font-semibold text-lg bg-blue-600 hover:bg-blue-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               {loading ? 'Creating...' : 'Create Account'}
-            </Button>
+            </button>
           </div>
         </form>
 
-        <div className="mt-6">
-          <SocialLogin 
-            redirectTo="/auth/role-selection"
-            onSuccess={() => {
-              // Redirect will be handled by the OAuth provider
-            }}
-            onError={(error) => {
-              setError(error);
-            }}
-          />
-        </div>
+        {/* Social login options removed */}
       </div>
     </div>
   );

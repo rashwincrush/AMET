@@ -184,26 +184,16 @@ export default function Login() {
           </div>
 
           <div className="mt-6">
-            <Button
+            <button
               type="submit"
-              className="w-full bg-white hover:bg-blue-50 text-blue-800 py-2 px-4 rounded-md text-lg font-bold border border-blue-300"
               disabled={loading}
+              className="w-full py-3 px-4 mt-2 text-white font-semibold text-lg bg-blue-600 hover:bg-blue-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               {loading ? 'Signing in...' : 'SIGN IN'}
-            </Button>
+            </button>
           </div>
           
-          <div className="mt-6">
-            <SocialLogin 
-              redirectTo="/api/auth/callback"
-              onSuccess={() => {
-                // Will be handled by the callback route
-              }}
-              onError={(error) => {
-                setError(error);
-              }}
-            />
-          </div>
+          {/* Social login options removed */}
           
 
         </form>
