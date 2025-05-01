@@ -1,5 +1,5 @@
 {
-  "buildCommand": "next build",
+  "buildCommand": "npm run vercel-build",
   "env": {
     "NEXT_PUBLIC_USE_MOCK_DATA": "true"
   },
