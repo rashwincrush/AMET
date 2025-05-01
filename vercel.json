@@ -5,14 +5,16 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "regions": ["iad1"],
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+  "routes": [
+    { "src": "/", "dest": "/home" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/404" }
   ],
   "env": {
     "NODE_ENV": "production",
     "NEXT_TELEMETRY_DISABLED": "1",
-    "NEXT_PUBLIC_USE_MOCK_DATA": "true",
-    "USE_MOCK_DATA": "true",
+    "NEXT_PUBLIC_USE_MOCK_DATA": "false",
+    "USE_MOCK_DATA": "false",
     "NEXT_DISABLE_ESLINT": "1",
     "DISABLE_ESLINT_PLUGIN": "true",
     "SKIP_API_ROUTES": "true"
