@@ -77,44 +77,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const hasPermission = (permission: string): boolean => {
-    // Super admin has all permissions
-    if (userRole === 'super_admin') return true;
-    
-    // Check if user has the specific permission
-    return permissions.includes(permission);
-  };
-
-  // Function to refresh the session
-  const refreshSession = useCallback(async (): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.auth.refreshSession();
-      
-      if (error) {
-        console.error('Error refreshing session:', error);
-        return false;
-      }
-      
-      if (data.session) {
-        console.log('Session refreshed successfully');
-        setSession(data.session);
-        setUser(data.session.user);
-        setIsAuthenticated(true);
-        
-        if (data.session.user) {
-          fetchUserRole(data.session.user.id);
-        }
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Unexpected error refreshing session:', error);
-      return false;
-    }
-  }, []);
-
-  const fetchUserRole = async (userId: string) => {
+  // Function to set default permissions for all users in MVP demo
+  const fetchUserRole = useCallback(async (userId: string) => {
     try {
       // TEMPORARILY BYPASS RBAC FOR MVP DEMO
       // Set default role and permissions for all users to enable Jobs page functionality
@@ -128,191 +92,53 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         'view_applications'
       ]);
       
-      // Add debug log for MVP demo
+      // Debug log for MVP demo
       console.log('MVP Demo: Using default permissions for all users');
-      return;
-      
-      /* Original code commented out for MVP demo
-      const { data: userRoleData } = await supabase
-        .from('user_roles')
-        .select('roles!inner(name, permissions)')
-        .eq('profile_id', userId)
-        .single();
-
-      if (!userRoleData) {
-        setUserRole('user');
-        setPermissions(['view_content']);
-        return;
-      }
-
-      // Handle different possible response structures
-      let roleName = 'user';
-      let permissions: string[] = ['view_content'];
-      
-      // Log the response for debugging
-      console.log('User role data:', JSON.stringify(userRoleData, null, 2));
-      */
-      
-      // The following code is kept but will not execute due to the early return above
-      try {
-        // Define a type guard for role objects
-        const isRoleObject = (obj: any): obj is { name: string; permissions: any } => {
-          return obj && typeof obj === 'object' && 'name' in obj;
-        };
-        
-        // Check if roles is an array or an object
-        if (Array.isArray(userRoleData.roles)) {
-          // If it's an array, take the first role
-          if (userRoleData.roles.length > 0) {
-            const role = userRoleData.roles[0] as any;
-            roleName = (role && typeof role === 'object' && 'name' in role) ? String(role.name) : 'user';
-            
-            // Handle permissions based on format
-            if (role && typeof role === 'object' && 'permissions' in role && role.permissions) {
-              if (Array.isArray(role.permissions)) {
-                permissions = role.permissions.map((p: any) => 
-                  p && typeof p === 'object' && 'name' in p ? String(p.name) : String(p)
-                );
-              } else if (typeof role.permissions === 'object') {
-                permissions = Object.entries(role.permissions as Record<string, any>)
-                  .filter(([_, enabled]) => enabled)
-                  .map(([permName]) => permName);
-              }
-            }
-          }
-        } else if (userRoleData.roles && typeof userRoleData.roles === 'object') {
-          // If it's an object
-          const rolesObj = userRoleData.roles as any;
-          roleName = 'name' in rolesObj ? String(rolesObj.name) : 'user';
-          
-          // Handle permissions based on format
-          const rolePermissions = 'permissions' in rolesObj ? rolesObj.permissions : null;
-          if (rolePermissions) {
-            if (Array.isArray(rolePermissions)) {
-              permissions = rolePermissions.map((p: any) => 
-                p && typeof p === 'object' && 'name' in p ? String(p.name) : String(p)
-              );
-            } else if (typeof rolePermissions === 'object') {
-              permissions = Object.entries(rolePermissions as Record<string, any>)
-                .filter(([_, enabled]) => enabled)
-                .map(([permName]) => permName);
-            }
-          }
-        }
-      } catch (parseError) {
-        console.error('Error parsing role data:', parseError);
-      }
-      
-      // Get highest priority role
-      const rolePriority = ['super_admin', 'administrator', 'admin', 'alumni', 'employer', 'user'];
-      setUserRole(roleName);
-
-      setPermissions(permissions);
     } catch (error) {
-      console.error('Error fetching user roles:', error);
+      console.error('Error setting default permissions:', error);
       setUserRole('user');
       setPermissions(['view_content']);
     }
-  };
+  }, []);
 
-  // Initialize auth state
-  useEffect(() => {
-    let mounted = true;
+  const hasPermission = useCallback((permission: string): boolean => {
+    // Super admin has all permissions
+    if (userRole === 'super_admin') return true;
     
-    // Get session from Supabase
-    const getSession = async () => {
-      try {
-        setIsLoading(true);
-        
-        // First check if we have tokens in storage
-        const hasTokens = checkForTokens();
-        if (hasTokens) {
-          console.log('Found stored tokens, attempting to refresh session');
-          const refreshed = await refreshSession();
-          if (refreshed && mounted) {
-            return; // Successfully refreshed, no need to continue
-          }
-        }
+    // Check if user has the specific permission
+    return permissions.includes(permission);
+  }, [userRole, permissions]);
 
-        // If no tokens or refresh failed, try to get session directly
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          if (mounted) {
-            setIsAuthenticated(false);
-          }
-          return;
-        }
-        
-        if (data.session) {
-          console.log('Session found, user is authenticated');
-          if (mounted) {
-            setSession(data.session);
-            setUser(data.session.user);
-            setIsAuthenticated(true);
-            
-            if (data.session.user) {
-              fetchUserRole(data.session.user.id);
-            }
-          }
-        } else {
-          console.log('No active session found');
-          if (mounted) {
-            setSession(null);
-            setUser(null);
-            setUserRole(null);
-            setIsAuthenticated(false);
-          }
-        }
-      } catch (error) {
-        console.error('Unexpected error getting session:', error);
-        if (mounted) {
-          setIsAuthenticated(false);
-        }
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-          setAuthInitialized(true);
-        }
+  // Function to refresh the session
+  const refreshSession = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      
+      if (error) {
+        console.error('Error refreshing session:', error);
+        return false;
       }
-    };
-
-    getSession();
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
-      console.log('Auth state changed:', event);
       
-      if (!mounted) return;
-      
-      if (currentSession) {
-        console.log('New session established');
-        setSession(currentSession);
-        setUser(currentSession.user);
+      if (data && data.session) {
+        console.log('Session refreshed successfully');
+        setSession(data.session);
+        setUser(data.session.user);
         setIsAuthenticated(true);
         
-        if (currentSession.user) {
-          fetchUserRole(currentSession.user.id);
+        if (data.session.user) {
+          await fetchUserRole(data.session.user.id);
         }
-      } else if (event === 'SIGNED_OUT') {
-        console.log('Session ended');
-        setSession(null);
-        setUser(null);
-        setUserRole(null);
-        setIsAuthenticated(false);
+        return true;
       }
       
-      setIsLoading(false);
-      setAuthInitialized(true);
-    });
+      return false;
+    } catch (error) {
+      console.error('Unexpected error refreshing session:', error);
+      return false;
+    }
+  }, [fetchUserRole]);
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [checkForTokens, refreshSession]);
-
+  // Sign in function
   const signIn = async (email: string, password: string) => {
     console.log('Attempting to sign in');
     
@@ -328,13 +154,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       // Update authentication state
-      if (data.session) {
+      if (data && data.session) {
         setSession(data.session);
         setUser(data.session.user);
         setIsAuthenticated(true);
         
         if (data.session.user) {
-          fetchUserRole(data.session.user.id);
+          await fetchUserRole(data.session.user.id);
         }
       }
       
@@ -347,6 +173,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Sign up function
   const signUp = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({ 
@@ -366,6 +193,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Sign out function
   const signOut = async () => {
     try {
       // Clear any stored session data
@@ -381,12 +209,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(null);
       setSession(null);
       setUserRole(null);
+      setPermissions([]);
       setIsAuthenticated(false);
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
 
+  // Reset password function
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -401,6 +231,107 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Get session from Supabase on initial load
+  useEffect(() => {
+    let mounted = true;
+    
+    const getSession = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Check if we have tokens stored
+        const hasTokens = checkForTokens();
+        
+        // If we have tokens, try refreshing the session
+        if (hasTokens) {
+          const refreshed = await refreshSession();
+          
+          if (refreshed && mounted) {
+            setIsAuthenticated(true);
+            return; // Successfully refreshed session
+          }
+        }
+        
+        // If no tokens or refresh failed, get current session
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          if (mounted) {
+            setIsAuthenticated(false);
+          }
+          return;
+        }
+        
+        if (data && data.session) {
+          if (mounted) {
+            setSession(data.session);
+            setUser(data.session.user);
+            setIsAuthenticated(true);
+            
+            if (data.session.user) {
+              await fetchUserRole(data.session.user.id);
+            }
+          }
+        } else {
+          if (mounted) {
+            setSession(null);
+            setUser(null);
+            setUserRole(null);
+            setPermissions([]);
+            setIsAuthenticated(false);
+          }
+        }
+      } catch (error) {
+        console.error('Unexpected error getting session:', error);
+        if (mounted) {
+          setIsAuthenticated(false);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+          setAuthInitialized(true);
+        }
+      }
+    };
+
+    getSession();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      console.log('Auth state changed:', event);
+      
+      if (!mounted) return;
+      
+      if (currentSession) {
+        console.log('New session established');
+        setSession(currentSession);
+        setUser(currentSession.user);
+        setIsAuthenticated(true);
+        
+        if (currentSession.user) {
+          await fetchUserRole(currentSession.user.id);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        console.log('Session ended');
+        setSession(null);
+        setUser(null);
+        setUserRole(null);
+        setPermissions([]);
+        setIsAuthenticated(false);
+      }
+      
+      setIsLoading(false);
+      setAuthInitialized(true);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [checkForTokens, refreshSession, fetchUserRole]);
+
+  // Create the context value object
   const value = {
     user,
     session,
