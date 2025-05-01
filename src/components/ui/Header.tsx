@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { FaUser, FaSignOutAlt, FaSignInAlt, FaUserPlus, FaLock } from 'react-icons/fa';
 
 export default function Header() {
-  // Fix the type error by using optional chaining and providing a default value
   const { user, signOut } = useAuth();
-  const userRole = (useAuth() as any).userRole || null;
-  
+  // Use type assertion for userRole
+  const userRole = (useAuth() as any).userRole;
+
 
   return (
     <header className="bg-blue-600 shadow-sm">
@@ -18,7 +18,7 @@ export default function Header() {
           <div className="flex">
             <Link href="/home" className="flex-shrink-0 flex items-center">
               <img 
-                src="/AMETlogo.jpg?v=2" 
+                src="/images/logo.jpg?v=2" 
                 alt="AMET Logo" 
                 width="120" 
                 height="40" 

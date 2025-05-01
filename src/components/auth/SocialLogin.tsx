@@ -21,8 +21,7 @@ export default function SocialLogin({
     try {
       setLoading({ ...loading, [provider]: true });
       
-      console.log(`Attempting to sign in with ${provider}`);
-      console.log(`Redirect URL: ${window.location.origin}${redirectTo}`);
+      // Initiating OAuth sign-in
       
       // We've added compatibility in the Supabase client, so we can just use signInWithOAuth
       // which should work regardless of which version is actually implemented
@@ -40,7 +39,7 @@ export default function SocialLogin({
         throw error;
       }
       
-      console.log(`${provider} OAuth initiated successfully:`, data);
+      // OAuth initiated successfully
       // The redirect will happen automatically, but we'll call onSuccess just in case
       onSuccess?.();
     } catch (err: any) {

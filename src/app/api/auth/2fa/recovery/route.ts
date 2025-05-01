@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       success: true, 
       message: 'If your account exists, a recovery email has been sent',
       // Only in development, remove in production:
-      dev_code: process.env.NODE_ENV === 'development' ? recoveryCode : undefined
+      // No dev code in production
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

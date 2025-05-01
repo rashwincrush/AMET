@@ -52,12 +52,6 @@ export default function TwoFactorVerification({
       setCountdown(60);
       
       toast.success('Verification code sent to your email');
-      
-      // For demo purposes, show the code in development mode
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Verification code for demo: 123456');
-        toast.info('Demo code: 123456', { duration: 10000 });
-      }
     } catch (error) {
       console.error('Error sending verification code:', error);
       toast.error('Failed to send verification code');

@@ -1,11 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
 
 export default function Logo() {
-
-
   return (
     <Link href="/home" className="flex-shrink-0 flex items-center">
       <div className="flex flex-col items-center">

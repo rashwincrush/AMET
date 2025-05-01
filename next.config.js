@@ -34,7 +34,7 @@ const nextConfig = {
   trailingSlash: false,
   
   // Standard Next.js configuration for Vercel deployment
-  output: 'standalone',
+  // Removed standalone output mode to fix build issues
   
   experimental: {
     serverComponentsExternalPackages: ['@supabase/ssr']

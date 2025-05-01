@@ -40,7 +40,7 @@ export default function Login() {
 
     try {
       setLoading(true);
-      console.log('Attempting to sign in with:', email);
+      // Authentication attempt
       
       let data, error;
       
@@ -48,16 +48,16 @@ export default function Login() {
       try {
         // First try the newer method (signInWithPassword)
         if (typeof supabase.auth.signInWithPassword === 'function') {
-          console.log('Using signInWithPassword method');
+
           ({ data, error } = await supabase.auth.signInWithPassword({
             email,
             password
           }));
         }
         // Fall back to the older method (signIn)
-        else if (typeof supabase.auth.signIn === 'function') {
-          console.log('Using signIn method');
-          ({ data, error } = await supabase.auth.signIn({
+        else if (typeof (supabase.auth as any).signIn === 'function') {
+
+          ({ data, error } = await (supabase.auth as any).signIn({
             email,
             password
           }));
@@ -71,13 +71,13 @@ export default function Login() {
         try {
           const anyClient = supabase.auth as any;
           if (anyClient.signIn) {
-            console.log('Using any cast signIn method');
+
             ({ data, error } = await anyClient.signIn({
               email,
               password
             }));
           } else if (anyClient.signInWithPassword) {
-            console.log('Using any cast signInWithPassword method');
+
             ({ data, error } = await anyClient.signInWithPassword({
               email,
               password
@@ -96,7 +96,7 @@ export default function Login() {
         throw error;
       }
       
-      console.log('Login successful, redirecting to:', redirectUrl);
+      // Login successful, redirecting
       
       // Always redirect to the dashboard page after successful login
       // Use setTimeout to ensure the auth state is updated before redirecting

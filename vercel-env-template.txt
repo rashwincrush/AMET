@@ -1,0 +1,19 @@
+# Supabase Configuration
+# Replace these values with your actual Supabase project details from your dashboard
+NEXT_PUBLIC_SUPABASE_URL=https://gvbtfolcizkzihforqte.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Service Role Key (keep this secret, server-side only)
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Application Configuration
+NEXT_PUBLIC_APP_URL=https://ametalumni.in
+
+# Disable mock data in production
+USE_MOCK_DATA=false
+
+# Optional: Analytics and monitoring (if applicable)
+# NEXT_PUBLIC_ANALYTICS_ID=
+
+# Optional: Email service configuration (if applicable)
+# EMAIL_SERVICE_API_KEY=

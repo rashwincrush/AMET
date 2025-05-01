@@ -1,8 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Debug logs to check environment variables
-console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set');
-console.log('Supabase Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set');
+// Production build - no debug logs
 
 // Check for environment variables and provide fallback
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -41,10 +39,7 @@ export const supabaseServer = createClient(supabaseUrl, supabaseServiceRoleKey |
   },
 });
 
-// Log the Supabase URL to verify it's correct (only in development)
-if (process.env.NODE_ENV === 'development') {
-  console.log('Supabase URL:', supabaseUrl);
-}
+// No development logs in production
 
 // Helper function to check if a user exists
 export async function checkUserExists(email: string) {
