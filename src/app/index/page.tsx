@@ -1,22 +1,8 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-
-// This is just a wrapper to handle the /index route that Vercel is looking for
-// It preserves the same redirect behavior as the root page
+// This is a server component that handles the /index route
+// It uses Next.js server-side redirect which is compatible with static generation
 export default function IndexPage() {
-  const router = useRouter();
-  
-  useEffect(() => {
-    // Immediate redirect to /home, same as the root page
-    window.location.href = '/home';
-  }, []);
-  
-  // Return minimal UI to avoid any flash before redirect
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center">
-      <p>Redirecting to AMET Alumni Portal...</p>
-    </div>
-  );
+  // Server-side redirect to /home
+  redirect('/home');
 }
