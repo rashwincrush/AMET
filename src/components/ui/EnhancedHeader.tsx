@@ -236,9 +236,7 @@ export default function EnhancedHeader() {
               <div className="hidden md:flex items-center space-x-2">
                 <Link href="/auth/login">
                   <Button 
-                    variant={scrolled ? "outline" : "secondary"} 
-                    className={`text-sm ${scrolled ? 'border-blue-600 text-blue-600' : 'bg-white text-black'}
-                    `}
+                    className="text-sm bg-white text-blue-800 hover:bg-blue-50 border border-blue-300"
                   >
                     <FaSignInAlt className="mr-1.5 h-3.5 w-3.5" />
                     Sign In
