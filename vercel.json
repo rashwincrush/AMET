@@ -5,10 +5,8 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "regions": ["iad1"],
-  "routes": [
-    { "src": "/", "dest": "/home" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/404" }
+  "rewrites": [
+    { "source": "/", "destination": "/home" }
   ],
   "env": {
     "NODE_ENV": "production",
