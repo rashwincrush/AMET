@@ -487,6 +487,7 @@ export default function CompleteProfilePage() {
                   <Button
                     type="submit"
                     disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
                   >
                     {loading ? 'Saving...' : 'Save Profile'}
                   </Button>

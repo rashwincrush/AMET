@@ -233,24 +233,34 @@ export default function EnhancedHeader() {
                 </DropdownMenu>
               </>
             ) : (
-              <div className="hidden md:flex items-center space-x-2">
-                <Link href="/auth/login">
-                  <Button 
-                    className="text-sm bg-White text-blue hover:bg-blue-50 border border-blue-300"
-                  >
-                    <FaSignInAlt className="mr-1.5 h-3.5 w-3.5" />
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/auth/signup">
-                  <Button 
-                    className="text-sm bg-White text-blue hover:bg-blue-50 border border-blue-300"
-                  >
-                    <FaUserPlus className="mr-1.5 h-3.5 w-3.5" />
-                    Join Now
-                  </Button>
-                </Link>
-              </div>
+             
+// Authentication buttons with conditional styling based on scroll position
+<div className="hidden md:flex items-center space-x-2">
+  <Link href="/auth/login">
+    <Button 
+      className={`text-sm font-medium flex items-center ${
+        scrolled 
+          ? 'bg-white text-gray-700 hover:text-blue-600 hover:bg-blue-50 border border-blue-300' 
+          : 'bg-blue-700 text-blue-100 hover:text-white hover:bg-blue-800 border border-blue-600'
+      } transition-colors`}
+    >
+      <FaSignInAlt className="mr-1.5 h-3.5 w-3.5" />
+      Sign In
+    </Button>
+  </Link>
+  <Link href="/auth/signup">
+    <Button 
+      className={`text-sm font-medium flex items-center ${
+        scrolled 
+          ? 'bg-white text-gray-700 hover:text-blue-600 hover:bg-blue-50 border border-blue-300' 
+          : 'bg-blue-700 text-blue-100 hover:text-white hover:bg-blue-800 border border-blue-600'
+      } transition-colors`}
+    >
+      <FaUserPlus className="mr-1.5 h-3.5 w-3.5" />
+      Join Now
+    </Button>
+  </Link>
+</div>
             )}
           </div>
         </div>

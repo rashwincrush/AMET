@@ -100,15 +100,15 @@ export default function EnhancedFooter() {
             <ul className="space-y-2 text-gray-400 mb-6">
               <li className="flex items-center">
                 <FaEnvelope className="mr-2 w-4 h-4 text-gray-500" />
-                <span>info@ametalumni.com</span>
+                <span>info@ametalumni.in</span>
               </li>
               <li className="flex items-center">
                 <FaPhone className="mr-2 w-4 h-4 text-gray-500" />
-                <span>+1 (555) 123-4567</span>
+                <span>+91 6382111569</span>
               </li>
               <li className="flex items-center">
                 <FaMapMarkerAlt className="mr-2 w-4 h-4 text-gray-500" />
-                <span>123 Ocean Avenue, Marine City</span>
+                <span>135, SH 49, Kanathur , Chennai - 600097</span>
               </li>
             </ul>
             
