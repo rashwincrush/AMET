@@ -6,7 +6,7 @@
   "outputDirectory": ".next",
   "regions": ["iad1"],
   "rewrites": [
-    { "source": "/", "destination": "/home" }
+    { "source": "/((?!api|_next/static|_next/image|favicon.ico).*)", "destination": "/$1" }
   ],
   "env": {
     "NODE_ENV": "production",
