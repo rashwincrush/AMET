@@ -29,7 +29,7 @@ interface RolePermission {
   permissions: Permission;
 }
 
-type AuthContextType = {
+export type AuthContextType = {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
@@ -231,64 +231,133 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Throttling to prevent repeated auth API calls
+  const [lastAuthCheck, setLastAuthCheck] = useState<number>(0);
+  const AUTH_CHECK_INTERVAL = 30000; // 30 seconds minimum between auth checks
+  
   // Get session from Supabase on initial load
   useEffect(() => {
     let mounted = true;
+    let authCheckAttempted = false;
     
     const getSession = async () => {
       try {
+        // Only proceed if this is the first auth check or if sufficient time has passed since last check
+        const now = Date.now();
+        if (authCheckAttempted && now - lastAuthCheck < AUTH_CHECK_INTERVAL) {
+          console.log('[Auth] Skipping redundant auth check - too frequent');
+          return;
+        }
+        
+        authCheckAttempted = true;
+        setLastAuthCheck(now);
         setIsLoading(true);
+        console.log('[Auth] Performing auth check...');
+        
+        // Check browser storage for rate limit markers
+        const rateLimitKey = 'supabase_rate_limit_until';
+        const rateLimitUntil = localStorage.getItem(rateLimitKey);
+        if (rateLimitUntil && parseInt(rateLimitUntil, 10) > Date.now()) {
+          console.warn('[Auth] Suppressing auth check due to previous rate limit', 
+            new Date(parseInt(rateLimitUntil, 10)));
+          if (mounted) {
+            setIsLoading(false);
+            setAuthInitialized(true);  
+          }
+          return;
+        }
         
         // Check if we have tokens stored
         const hasTokens = checkForTokens();
         
         // If we have tokens, try refreshing the session
         if (hasTokens) {
-          const refreshed = await refreshSession();
-          
-          if (refreshed && mounted) {
-            setIsAuthenticated(true);
-            return; // Successfully refreshed session
+          try {
+            const refreshed = await refreshSession();
+            
+            if (refreshed && mounted) {
+              setIsAuthenticated(true);
+              setIsLoading(false);
+              setAuthInitialized(true);
+              return; // Successfully refreshed session
+            }
+          } catch (refreshError: any) {
+            console.error('[Auth] Session refresh error:', refreshError);
+            // If we hit rate limits during refresh, pause auth checks
+            if (refreshError.status === 429) {
+              console.warn('[Auth] Rate limit hit during refresh, pausing auth checks for 5 minutes');
+              localStorage.setItem(rateLimitKey, (Date.now() + 5 * 60 * 1000).toString());
+              if (mounted) {
+                setIsLoading(false);
+                setAuthInitialized(true);  
+              }
+              return;
+            }
           }
         }
         
         // If no tokens or refresh failed, get current session
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          if (mounted) {
-            setIsAuthenticated(false);
-          }
-          return;
-        }
-        
-        if (data && data.session) {
-          if (mounted) {
-            setSession(data.session);
-            setUser(data.session.user);
-            setIsAuthenticated(true);
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('[Auth] Error getting session:', error);
+            // If we hit rate limits, pause auth checks
+            if (error.status === 429) {
+              console.warn('[Auth] Rate limit hit during getSession, pausing auth checks for 5 minutes');
+              localStorage.setItem(rateLimitKey, (Date.now() + 5 * 60 * 1000).toString());
+            }
             
-            if (data.session.user) {
-              await fetchUserRole(data.session.user.id);
+            if (mounted) {
+              setIsAuthenticated(false);
+              setIsLoading(false);
+              setAuthInitialized(true);
+            }
+            return;
+          }
+          
+          if (data && data.session) {
+            if (mounted) {
+              setSession(data.session);
+              setUser(data.session.user);
+              setIsAuthenticated(true);
+              
+              if (data.session.user) {
+                await fetchUserRole(data.session.user.id);
+              }
+              
+              setIsLoading(false);
+              setAuthInitialized(true);
+            }
+          } else {
+            if (mounted) {
+              setSession(null);
+              setUser(null);
+              setUserRole(null);
+              setPermissions([]);
+              setIsAuthenticated(false);
+              setIsLoading(false);
+              setAuthInitialized(true);
             }
           }
-        } else {
+        } catch (getSessionError: any) {
+          console.error('[Auth] Unexpected error getting session:', getSessionError);
+          // Handle rate limits here too
+          if (getSessionError.status === 429) {
+            console.warn('[Auth] Rate limit hit during getSession catch, pausing auth checks for 5 minutes');
+            localStorage.setItem(rateLimitKey, (Date.now() + 5 * 60 * 1000).toString());
+          }
+          
           if (mounted) {
-            setSession(null);
-            setUser(null);
-            setUserRole(null);
-            setPermissions([]);
             setIsAuthenticated(false);
+            setIsLoading(false);
+            setAuthInitialized(true);
           }
         }
       } catch (error) {
-        console.error('Unexpected error getting session:', error);
+        console.error('[Auth] Critical error in getSession function:', error);
         if (mounted) {
           setIsAuthenticated(false);
-        }
-      } finally {
-        if (mounted) {
           setIsLoading(false);
           setAuthInitialized(true);
         }
@@ -297,14 +366,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     getSession();
 
-    // Set up auth state listener
+    // Set up auth state listener with debounce to prevent rapid-fire events
+    let lastAuthEventTime = 0;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.log('Auth state changed:', event);
+      console.log('[Auth] Auth state changed:', event);
       
       if (!mounted) return;
       
+      // Prevent multiple rapid event handling
+      const now = Date.now();
+      if (now - lastAuthEventTime < AUTH_CHECK_INTERVAL) {
+        console.log('[Auth] Debouncing auth event - too frequent');
+        return;
+      }
+      
+      lastAuthEventTime = now;
+      
       if (currentSession) {
-        console.log('New session established');
+        console.log('[Auth] New session established');
         setSession(currentSession);
         setUser(currentSession.user);
         setIsAuthenticated(true);
@@ -313,7 +392,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           await fetchUserRole(currentSession.user.id);
         }
       } else if (event === 'SIGNED_OUT') {
-        console.log('Session ended');
+        console.log('[Auth] Session ended');
         setSession(null);
         setUser(null);
         setUserRole(null);

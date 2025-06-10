@@ -1,18 +1,68 @@
 import { supabase } from '@/lib/supabase';
+import { PostgrestResponse } from '@supabase/supabase-js';
+
+// Type definitions for Supabase responses
+type RoleRecord = {
+  id: string;
+  name: string;
+  description: string;
+  permissions: Record<string, boolean>;
+};
+
+type UserRoleRecord = {
+  id: string;
+  profile_id: string;
+  role_id: string;
+  roles: { name: string };
+};
 
 /**
  * Ensures that the default roles exist in the database
+ * Returns silently if there are network errors to prevent blocking the app
  */
 export async function ensureDefaultRolesExist() {
   try {
+    // Create a wrapper for Supabase calls that handles network errors gracefully
+    const safeQuery = async <T>(queryFn: () => Promise<PostgrestResponse<T>>) => {
+      try {
+        return await Promise.race([
+          queryFn(),
+          new Promise<PostgrestResponse<T>>((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 3000)
+          )
+        ]);
+      } catch (err) {
+        console.warn('Supabase query failed:', err);
+        return { data: null, error: err } as PostgrestResponse<T>;
+      }
+    };
+    
+    // Check for connectivity
+    const healthCheck = await safeQuery(() => 
+      supabase.from('roles').select('count').limit(1)
+    );
+    
+    if (healthCheck.error) {
+      console.warn('Supabase connectivity issues detected, skipping role initialization');
+      return false;
+    }
+    
     // Check if roles already exist
-    const { data: existingRoles, error: checkError } = await supabase
+    const result = await supabase
       .from('roles')
       .select('name');
     
+    const existingRoles = result.data;
+    const checkError = result.error;
+    
     if (checkError) {
-      console.error('Error checking existing roles:', checkError);
-      throw checkError;
+      console.warn('Error checking existing roles:', checkError);
+      return false; // Return silently instead of throwing
+    }
+    
+    if (!existingRoles) {
+      console.warn('No roles data returned from Supabase');
+      return false;
     }
 
     const existingRoleNames = existingRoles.map((role: any) => role.name);
@@ -147,10 +197,13 @@ export async function assignAdminRole(userId: string) {
 
 export async function checkUserRole(userId: string): Promise<string[]> {
   try {
-    const { data, error } = await supabase
+    const result = await supabase
       .from('user_roles')
       .select('roles(name)')
       .eq('profile_id', userId);
+      
+    const data = result.data;
+    const error = result.error;
 
     if (error) {
       console.error('Error checking user role:', error);

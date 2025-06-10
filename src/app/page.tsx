@@ -2,14 +2,27 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function RedirectToHome() {
   const router = useRouter();
   
   useEffect(() => {
-    // Immediate redirect with no delay
-    window.location.href = '/home';
-  }, []);
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // If user is authenticated and on the homepage, redirect to dashboard
+      if (session?.user) {
+        console.log('User is authenticated, redirecting to dashboard');
+        router.push('/dashboard');
+      } else {
+        // Immediate redirect with no delay
+        window.location.href = '/home';
+      }
+    };
+    
+    checkAuth();
+  }, [router]);
   
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-red-100">

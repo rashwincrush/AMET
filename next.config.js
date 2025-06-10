@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const { createSecureHeaders } = require('next-secure-headers');
+
 const nextConfig = {
   // Add redirects configuration
   async redirects() {
@@ -7,6 +9,21 @@ const nextConfig = {
         source: '/',
         destination: '/home',
         permanent: true,
+      },
+    ];
+  },
+  
+  // Add headers configuration
+  async headers() {
+    return [
+      {
+        source: '/:path*.webmanifest',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/manifest+json',
+          },
+        ],
       },
     ];
   },

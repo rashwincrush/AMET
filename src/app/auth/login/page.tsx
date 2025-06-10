@@ -8,14 +8,23 @@ import { supabase } from '@/lib/supabase';
 import SocialLogin from '@/components/auth/SocialLogin';
 import { getPreviousUrl } from '@/lib/navigation';
 
+// Rate limiting constants
+const RATE_LIMIT_DURATION = 60000; // 60 seconds in milliseconds (increased from 30s)
+const RATE_LIMIT_KEY = 'auth_last_attempt';
+const RATE_LIMIT_COUNTER_KEY = 'auth_attempt_count';
+const MAX_ATTEMPTS = 3; // Maximum attempts before enforcing a longer cooldown
+const EXTENDED_RATE_LIMIT_DURATION = 300000; // 5 minutes in milliseconds
+
 export default function Login() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Initialize to false, auth check handled by SessionLayout
   const [redirectUrl, setRedirectUrl] = useState('');
+  
+  // Authentication and redirect logic for already authenticated users is handled by SessionLayout.tsx
   
   // Get redirect URL from query parameters or localStorage
   useEffect(() => {
@@ -38,53 +47,93 @@ export default function Login() {
       return;
     }
 
-    try {
-      setLoading(true);
-      console.log('Attempting to sign in with:', email);
-      
-      let data, error;
-      
-      // Use the signInWithPassword method which is available in the latest Supabase JS client
-      try {
-        console.log('Using signInWithPassword method');
-        ({ data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        }));
-      } catch (authError) {
-        console.error('Authentication method error:', authError);
-        // Fallback to any type casting for compatibility with mock implementation
-        try {
-          const anyClient = supabase.auth as any;
-          console.log('Using any cast signInWithPassword method');
-          ({ data, error } = await anyClient.signInWithPassword({
-            email,
-            password
-          }));
-        } catch (finalError) {
-          console.error('Final authentication attempt failed:', finalError);
-          throw finalError;
+    // Client-side rate limiting logic
+    const lastAttemptTime = localStorage.getItem(RATE_LIMIT_KEY);
+    const currentTime = Date.now();
+    let attemptCount = parseInt(localStorage.getItem(RATE_LIMIT_COUNTER_KEY) || '0', 10);
+
+    if (lastAttemptTime) {
+      const timeSinceLastAttempt = currentTime - parseInt(lastAttemptTime, 10);
+      const cooldownDuration = attemptCount >= MAX_ATTEMPTS ? EXTENDED_RATE_LIMIT_DURATION : RATE_LIMIT_DURATION;
+      if (timeSinceLastAttempt < cooldownDuration) {
+        const secondsToWait = Math.ceil((cooldownDuration - timeSinceLastAttempt) / 1000);
+        const minutesToWait = Math.floor(secondsToWait / 60);
+        const remainingSeconds = secondsToWait % 60;
+        let waitMessage = '';
+        if (minutesToWait > 0) {
+          waitMessage = `${minutesToWait} minute${minutesToWait > 1 ? 's' : ''} and ${remainingSeconds} second${remainingSeconds !== 1 ? 's' : ''}`;
+        } else {
+          waitMessage = `${secondsToWait} second${secondsToWait !== 1 ? 's' : ''}`;
         }
+        setError(`Too many login attempts. Please wait ${waitMessage} before trying again.`);
+        return;
       }
-      
-      if (error) {
-        console.error('Supabase auth error:', error);
-        throw error;
+    }
+
+    attemptCount++;
+    localStorage.setItem(RATE_LIMIT_COUNTER_KEY, attemptCount.toString());
+    localStorage.setItem(RATE_LIMIT_KEY, currentTime.toString());
+
+    setLoading(true);
+    const supabaseRateLimitKey = 'supabase_rate_limit_until';
+
+    try {
+      const localRateLimitUntil = localStorage.getItem(supabaseRateLimitKey);
+      if (localRateLimitUntil && Date.now() < parseInt(localRateLimitUntil, 10)) {
+        const waitTimeMs = parseInt(localRateLimitUntil, 10) - Date.now();
+        const waitTimeSec = Math.ceil(waitTimeMs / 1000);
+        setError(`Please wait ${waitTimeSec}s due to previous Supabase rate limits.`);
+        return; // finally will set loading to false
       }
-      
-      console.log('Login successful, redirecting to:', redirectUrl);
-      
-      // Always redirect to the dashboard page after successful login
-      // Use setTimeout to ensure the auth state is updated before redirecting
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 500);
-      
+
+      console.log('[Login] Attempting Supabase sign-in...');
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        console.error('[Login] Supabase Sign-In Error:', JSON.stringify(signInError, null, 2));
+        if (signInError.status === 429) {
+          setError('Too many requests to Supabase. Please wait a few minutes and try again.');
+          localStorage.setItem(supabaseRateLimitKey, (Date.now() + EXTENDED_RATE_LIMIT_DURATION).toString());
+        } else if (signInError.message?.toLowerCase().includes('invalid login credentials')) {
+          setError('Invalid email or password. Please try again.');
+        } else if (signInError.message?.toLowerCase().includes('email not confirmed')) {
+          setError('Please verify your email address before logging in.');
+        } else {
+          setError(signInError.message || 'An unexpected error occurred during sign in.');
+        }
+        return; // finally will set loading to false
+      }
+
+      if (data?.user) {
+        console.log('[Login] Sign-in successful for user:', data.user.id);
+        localStorage.removeItem(RATE_LIMIT_COUNTER_KEY);
+        localStorage.removeItem(RATE_LIMIT_KEY);
+        localStorage.removeItem(supabaseRateLimitKey);
+
+        console.log('[Login] Redirecting to:', redirectUrl || '/dashboard');
+        router.push(redirectUrl || '/dashboard'); // Using Next.js router for client-side navigation
+      } else {
+        setError('Sign in failed: No user data received and no specific error from Supabase.');
+        console.error('[Login] Sign-in failed: No user data but no signInError. Data:', data);
+      }
     } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.message || 'Failed to sign in');
+      console.error('[Login] Outer Catch Error during sign in:', JSON.stringify(err, null, 2));
+      // This catch block handles errors not caught by the Supabase client's error object (e.g., network issues)
+      if (err.name === 'AuthApiError' && err.status === 429) {
+         setError('Too many requests (Supabase API). Please wait a few minutes and try again.');
+         localStorage.setItem(supabaseRateLimitKey, (Date.now() + EXTENDED_RATE_LIMIT_DURATION).toString());
+      } else if (err.message?.toLowerCase().includes('failed to fetch')) {
+        setError('Network error. Please check your internet connection and try again.');
+        console.warn('[Login] "Failed to fetch" could indicate network, CORS, or Supabase service issues.');
+      } else {
+        setError(err.message || 'A critical error occurred during sign in. Please try again.');
+      }
     } finally {
       setLoading(false);
+      console.log('[Login] handleSubmit finished. Loading state is now false.');
     }
   };
   
@@ -169,7 +218,13 @@ export default function Login() {
             </button>
           </div>
           
-          {/* Social login options removed */}
+          {/* Social login options */}
+          <div className="mt-6 social-login-container">
+            <SocialLogin 
+              redirectTo="/dashboard" 
+              onError={(errorMsg) => setError(errorMsg)}
+            />
+          </div>
           
 
         </form>

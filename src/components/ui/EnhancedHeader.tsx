@@ -50,13 +50,24 @@ export default function EnhancedHeader() {
   }, []);
 
   const mainNavItems = [
-    { name: 'Home', href: '/', icon: <FaHome className="w-4 h-4" /> },
+    { name: 'Home', href: user ? '/dashboard' : '/', icon: <FaHome className="w-4 h-4" /> },
     { name: 'Directory', href: '/directory', icon: <FaUsers className="w-4 h-4" /> },
     { name: 'Events', href: '/events', icon: <FaCalendar className="w-4 h-4" /> },
     { name: 'Jobs', href: '/jobs', icon: <FaBriefcase className="w-4 h-4" /> },
     { name: 'Mentorship', href: '/mentorship', icon: <FaHandshake className="w-4 h-4" /> },
     { name: 'About', href: '/about', icon: <FaAnchor className="w-4 h-4" /> },
   ];
+  
+  // Force refresh auth state if needed
+  useEffect(() => {
+    if (user) {
+      // If we're on the login page but user is authenticated, redirect to dashboard
+      const path = window.location.pathname;
+      if (path.includes('/auth/login')) {
+        window.location.href = '/dashboard';
+      }
+    }
+  }, [user]);
 
   return (
     <header 

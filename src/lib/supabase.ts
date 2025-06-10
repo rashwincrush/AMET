@@ -6,7 +6,9 @@ console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Not
 console.log('Supabase Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set');
 
 // Check if we should use mock data
-const useMockData = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
+const useMockDataEnv = process.env.NEXT_PUBLIC_USE_MOCK_DATA;
+const useMockData = useMockDataEnv === 'true';
+console.log('[SupabaseInit] NEXT_PUBLIC_USE_MOCK_DATA:', useMockDataEnv, '(parsed as: ', useMockData, ')');
 
 // Check for environment variables and provide fallback
 if ((!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) && !useMockData) {
@@ -15,26 +17,33 @@ if ((!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+console.log('[SupabaseInit] NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Not set or empty');
+console.log('[SupabaseInit] NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Not set or empty');
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Use mock Supabase client if specified or if environment variables are missing
 const shouldUseMock = useMockData || (!supabaseUrl || !supabaseAnonKey);
+console.log('[SupabaseInit] Calculated shouldUseMock:', shouldUseMock, '(useMockData:', useMockData, ', !supabaseUrl:', !supabaseUrl, ', !supabaseAnonKey:', !supabaseAnonKey, ')');
 
 // Initialize Supabase client with simplified configuration or use mock
-export const supabase = shouldUseMock 
-  ? mockSupabaseClient 
-  : createClient(supabaseUrl, supabaseAnonKey, {
+let supabaseClient;
+if (shouldUseMock) {
+  console.log('[SupabaseInit] Using MOCK Supabase client');
+  supabaseClient = mockSupabaseClient;
+} else {
+  console.log('[SupabaseInit] Using REAL Supabase client');
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
       },
       global: {
-        headers: {
-          'apikey': supabaseAnonKey,
-        },
+        headers: { 'x-app-version': 'alumni-management-system-0.1.0' },
       },
     });
+}
+export const supabase = supabaseClient;
 
 // Initialize admin Supabase client for server-side operations
 export const supabaseServer = shouldUseMock
